@@ -165,11 +165,165 @@ function migrateGameHistoryV3(){
 }
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function showScreen(name){$$('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.target===name));$('#screenTitle').textContent=name[0].toUpperCase()+name.slice(1);if(name==='stats')renderStats();window.scrollTo(0,0)}
+function showScreen(name){$$('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.target===name));$('#screenTitle').textContent=name[0].toUpperCase()+name.slice(1);if(name==='stats')renderStats();if(name==='groups')renderPlaygroup();window.scrollTo(0,0)}
 $$('.nav').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.target)));$$('[data-jump]').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.jump)));
 function renderDecks(){$('#deckList').innerHTML=state.decks.map(d=>`<article class="deck-card" style="--deckA:${d.colors[0]};--deckB:${d.colors[1]}"><small>${d.format} · ${d.owner}</small><strong>${esc(d.name)}</strong><span>${esc(d.commander)}</span></article>`).join('')}
-function renderMembers(){$('#memberList').innerHTML=state.members.slice(0,4).map(m=>`<article class="member-card"><div class="avatar">${esc(m.name[0])}</div><strong>${esc(m.name)}</strong><span>${esc(m.deck)}</span><small>${esc(m.commander)}</small></article>`).join('')}
-function currentSeats(){const n=+$('#playerCount').value;return (state.seatOrder||state.members).slice(0,n)}
+
+const playgroupStoreKey='mtg-tool-playgroups-v1';
+const activePlaygroupKey='mtg-tool-active-playgroup-v1';
+
+function defaultPlaygroup(){
+  return {
+    id:'group_default',
+    name:'Friday Night Commanders',
+    createdAt:new Date().toISOString(),
+    members:state.members.slice(0,4).map((m,i)=>({
+      id:'member_'+i,
+      name:m.name,
+      deckId:null,
+      manualDeck:m.deck,
+      commander:m.commander
+    }))
+  };
+}
+function loadPlaygroups(){
+  try{
+    const groups=JSON.parse(localStorage.getItem(playgroupStoreKey)||'[]');
+    if(Array.isArray(groups)&&groups.length)return groups;
+  }catch{}
+  const seed=[defaultPlaygroup()];
+  localStorage.setItem(playgroupStoreKey,JSON.stringify(seed));
+  localStorage.setItem(activePlaygroupKey,seed[0].id);
+  return seed;
+}
+function savePlaygroups(groups){
+  localStorage.setItem(playgroupStoreKey,JSON.stringify(groups));
+}
+function activePlaygroupId(){
+  const groups=loadPlaygroups();
+  const id=localStorage.getItem(activePlaygroupKey);
+  return groups.some(g=>g.id===id)?id:groups[0]?.id;
+}
+function activePlaygroup(){
+  return loadPlaygroups().find(g=>g.id===activePlaygroupId())||loadPlaygroups()[0];
+}
+function saveActivePlaygroup(group){
+  const groups=loadPlaygroups(),i=groups.findIndex(g=>g.id===group.id);
+  if(i>=0)groups[i]=group;else groups.push(group);
+  savePlaygroups(groups);
+  localStorage.setItem(activePlaygroupKey,group.id);
+}
+function linkedDeckForMember(member){
+  if(!member?.deckId)return null;
+  return getLabDeck(member.deckId)||null;
+}
+function syncStateMembersFromGroup(){
+  const group=activePlaygroup();
+  if(!group)return;
+  state.members=group.members.map((m,i)=>{
+    const d=linkedDeckForMember(m),v=d?currentLabVersion(d):null;
+    return {
+      memberId:m.id,
+      name:m.name,
+      deck:d?.name||m.manualDeck||'Unlinked deck',
+      commander:d?.commander||m.commander||'Commander not set',
+      deckId:d?.id||null,
+      deckVersion:v?.version??null,
+      colors:state.members[i]?.colors||['#263855','#0c131f']
+    };
+  });
+  state.seatOrder=null;
+}
+function memberDeckOptions(selected=''){
+  const decks=loadLabDecks();
+  return '<option value="">Unlinked / manual</option>'+decks.map(d=>`<option value="${d.id}"${d.id===selected?' selected':''}>${esc(d.name)} — v${currentLabVersion(d)?.version||1}</option>`).join('');
+}
+function groupGameCount(group){
+  const ids=new Set((group.members||[]).map(m=>m.deckId).filter(Boolean));
+  return readCanonicalGames().filter(g=>(g.deckRefs||[]).some(r=>ids.has(r?.deckRef?.deckId))).length;
+}
+function groupProfile(group){
+  const rows=[];
+  for(const m of group.members||[]){
+    const d=linkedDeckForMember(m),v=d?currentLabVersion(d):null,a=v?.analysis;
+    if(!d||!a)continue;
+    try{rows.push(userPodProfile(d,a))}catch{}
+  }
+  if(!rows.length)return null;
+  const avg=k=>rows.reduce((s,p)=>s+(+p[k]||0),0)/rows.length;
+  return {
+    count:rows.length,
+    Speed:avg('speed'),
+    Aggression:avg('aggression'),
+    Interaction:avg('interaction'),
+    Resilience:avg('resilience'),
+    profiles:rows
+  };
+}
+function renderPlaygroup(){
+  const groups=loadPlaygroups(),group=activePlaygroup();
+  if(!group)return;
+  syncStateMembersFromGroup();
+
+  if($('#playgroupSelect')){
+    $('#playgroupSelect').innerHTML=groups.map(g=>`<option value="${g.id}"${g.id===group.id?' selected':''}>${esc(g.name)}</option>`).join('');
+  }
+  if($('#groupTitle'))$('#groupTitle').textContent=group.name;
+  const linked=(group.members||[]).filter(m=>linkedDeckForMember(m)).length;
+  if($('#groupSummary'))$('#groupSummary').textContent=`${group.members.length} players · ${linked} linked decks`;
+  const gc=groupGameCount(group);
+  if($('#groupGameSummary'))$('#groupGameSummary').textContent=gc?`${gc} tracked game${gc===1?'':'s'} involving group decks`:'No tracked games yet';
+  if($('#groupAvatarStack'))$('#groupAvatarStack').innerHTML=group.members.slice(0,6).map(m=>`<span>${esc((m.name||'?')[0])}</span>`).join('');
+
+  if($('#memberList'))$('#memberList').innerHTML=group.members.map(m=>{
+    const d=linkedDeckForMember(m),v=d?currentLabVersion(d):null;
+    return `<article class="member-card group-member-card">
+      <div class="avatar">${esc((m.name||'?')[0])}</div>
+      <strong>${esc(m.name)}</strong>
+      <select data-group-member-deck="${m.id}">${memberDeckOptions(m.deckId||'')}</select>
+      <small>${esc(d?.commander||m.commander||'No commander')}</small>
+      <em>${d?`v${v?.version||1}`:'UNLINKED'}</em>
+      <button data-remove-group-member="${m.id}" class="mini-danger" type="button">Remove</button>
+    </article>`;
+  }).join('')||'<div class="muted">No members yet.</div>';
+
+  const decks=loadLabDecks();
+  if($('#newMemberDeck'))$('#newMemberDeck').innerHTML=memberDeckOptions('');
+  if($('#groupSimDeck')){
+    const old=$('#groupSimDeck').value;
+    $('#groupSimDeck').innerHTML=decks.map(d=>`<option value="${d.id}">${esc(d.name)} — v${currentLabVersion(d)?.version||1}</option>`).join('');
+    if(decks.some(d=>d.id===old))$('#groupSimDeck').value=old;
+  }
+  if($('#groupPodSize'))$('#groupPodSize').value=`${Math.max(1,linked)} linked group deck${linked===1?'':'s'}`;
+
+  const profile=groupProfile(group);
+  if($('#groupDnaConfidence'))$('#groupDnaConfidence').textContent=profile?`${profile.count} ANALYZED`:'NO DATA';
+  if($('#groupDnaProfile')){
+    $('#groupDnaProfile').innerHTML=profile
+      ? ['Speed','Aggression','Interaction','Resilience'].map(k=>`<div class="profile-row"><span>${k}</span><div><i style="--v:${Math.round(profile[k])}%"></i></div><strong>${Math.round(profile[k])}</strong></div>`).join('')
+      : '<p class="muted">Analyze linked decks to build the playgroup profile.</p>';
+  }
+
+  $$('[data-group-member-deck]').forEach(sel=>sel.addEventListener('change',e=>{
+    const g=activePlaygroup(),m=g.members.find(x=>x.id===e.target.dataset.groupMemberDeck);
+    if(!m)return;
+    m.deckId=e.target.value||null;
+    const d=m.deckId?getLabDeck(m.deckId):null;
+    if(d){m.manualDeck=d.name;m.commander=d.commander}
+    saveActivePlaygroup(g);renderPlaygroup();renderSeatSetup();updateHome();
+  }));
+  $$('[data-remove-group-member]').forEach(b=>b.addEventListener('click',()=>{
+    const g=activePlaygroup();
+    g.members=g.members.filter(x=>x.id!==b.dataset.removeGroupMember);
+    saveActivePlaygroup(g);renderPlaygroup();renderSeatSetup();updateHome();
+  }));
+}
+
+function renderMembers(){
+  const group=activePlaygroup();
+  if(group)renderPlaygroup();
+}
+function currentSeats(){syncStateMembersFromGroup();const n=+$('#playerCount').value;return (state.seatOrder||state.members).slice(0,n)}
 
 function seatBindingKey(member){
   return `mtg-tool-seat-binding:${member?.name||'unknown'}`;
@@ -193,7 +347,8 @@ function bindingOptions(selectedId=''){
   }).join('');
 }
 function seatDeckRef(member){
-  const b=readSeatBinding(member);
+  const directId=member?.deckId||null;
+  const b=directId?{deckId:directId}:readSeatBinding(member);
   if(!b?.deckId)return null;
   const d=(loadLabDecks?.()||[]).find(x=>x.id===b.deckId);
   if(!d)return null;
@@ -224,7 +379,9 @@ function renderSeatSetup(){
     if(!d)return;
     const v=currentLabVersion(d);
     saveSeatBinding(member,{deckId:d.id,selectedVersion:v?.version??null,savedAt:new Date().toISOString()});
-    member.deck=d.name;
+    const g=activePlaygroup(),gm=g?.members?.find(x=>x.id===member.memberId||x.name===member.name);
+    if(gm){gm.deckId=d.id;gm.manualDeck=d.name;gm.commander=d.commander;saveActivePlaygroup(g)}
+    member.deckId=d.id;member.deck=d.name;
     member.commander=d.commander||member.commander;
     renderSeatSetup();
   }));
@@ -237,7 +394,11 @@ function freshCounters(){return {energy:0,experience:0,treasure:0,tax:0,storm:0,
 $('#startGame').addEventListener('click',()=>{
   const n=+$('#playerCount').value,life=+$('#startingLife').value||40,arr=currentSeats();
   const first=Math.min(n-1,Math.max(0,+($('#startGame').dataset.first||0)));
-  const players=arr.map((m,i)=>({...m,life,poison:0,eliminated:false,cmd:Array(n).fill(0),counters:freshCounters(),seat:i}));
+  const players=arr.map((m,i)=>{
+    const ref=seatDeckRef(m)||resolveDeckRefForPlayer(m);
+    const commander=ref?.commander||m.commander;
+    return {...m,commander,life,poison:0,eliminated:false,cmd:Array(n).fill(0),counters:freshCounters(),seat:i};
+  });
   state.game={
     round:1,turn:first,events:[],startedAt:Date.now(),turnStartedAt:Date.now(),
     autoKo:$('#autoKo').checked,timerEnabled:$('#timerEnabled').checked,
@@ -254,26 +415,52 @@ function snap(){state.history.push(JSON.stringify(state.game));if(state.history.
 function layoutClass(i,n){if(n===1)return'';if(n===2)return i===0?'rotate':'';if(n===3)return i<2?'rotate':'';if(n>=4)return i<2?'rotate':'';return''}
 function readArtCache(){try{return JSON.parse(localStorage.getItem(artCacheKey)||'{}')}catch{return {}}}
 function saveArtCache(v){try{localStorage.setItem(artCacheKey,JSON.stringify(v))}catch{}}
-function cachedArt(name){return readArtCache()[name]||''}
+function artCacheName(name){return String(name||'').trim().toLowerCase()}
+function cachedArt(name){const c=readArtCache();return c[artCacheName(name)]||c[name]||''}
 async function resolveCommanderArt(name){
-  const cache=readArtCache();
-  if(cache[name]) return cache[name];
-  try{
-    let r=await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`,{mode:'cors',cache:'force-cache'});
-    if(!r.ok) r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`,{mode:'cors',cache:'force-cache'});
-    if(!r.ok) throw new Error(`Scryfall ${r.status}`);
-    const card=await r.json();
-    const art=card?.image_uris?.art_crop || card?.card_faces?.find(f=>f.image_uris?.art_crop)?.image_uris?.art_crop || card?.image_uris?.normal || '';
-    if(art){cache[name]=art;saveArtCache(cache);return art}
-  }catch(err){console.warn('Commander art lookup failed',name,err)}
+  const clean=String(name||'').trim();
+  if(!clean)return '';
+  const cache=readArtCache(),key=artCacheName(clean);
+  if(cache[key])return cache[key];
+  if(cache[clean])return cache[clean];
+
+  for(const mode of ['exact','fuzzy']){
+    try{
+      const r=await fetch(`https://api.scryfall.com/cards/named?${mode}=${encodeURIComponent(clean)}`,{mode:'cors',cache:'no-store'});
+      if(!r.ok)continue;
+      const card=await r.json();
+      const faces=card?.card_faces||[];
+      const art=
+        card?.image_uris?.art_crop ||
+        faces.find(f=>f.image_uris?.art_crop)?.image_uris?.art_crop ||
+        card?.image_uris?.normal ||
+        faces.find(f=>f.image_uris?.normal)?.image_uris?.normal ||
+        faces.find(f=>f.image_uris?.large)?.image_uris?.large ||
+        '';
+      if(art){
+        cache[key]=art;
+        cache[clean]=art;
+        saveArtCache(cache);
+        return art;
+      }
+    }catch(err){
+      console.warn('Commander art lookup failed',clean,mode,err);
+    }
+  }
   return '';
 }
 function hydrateCommanderArt(){
   if(!state.game)return;
-  $$('.player-zone[data-commander]').forEach(async zone=>{
-    const name=zone.dataset.commander;
+  $$('.player-zone[data-player-index]').forEach(async zone=>{
+    const i=+zone.dataset.playerIndex;
+    const player=state.game?.players?.[i];
+    const name=String(player?.commander||zone.dataset.commander||'').trim();
+    if(!name)return;
+
     const art=cachedArt(name)||await resolveCommanderArt(name);
     if(!art)return;
+
+    zone.dataset.commander=name;
     zone.style.setProperty('--commander-art',`url("${art.replace(/"/g,'\\"')}")`);
     zone.classList.add('art-loaded');
   });
@@ -320,10 +507,80 @@ function pct(a,b){return b?Math.round(a/b*100):0}
 function renderStats(){const games=readCanonicalGames();$('#statGames').textContent=games.length;$('#statRounds').textContent=games.length?(games.reduce((s,g)=>s+g.rounds,0)/games.length).toFixed(1):'—';const finish={};games.forEach(g=>finish[g.finishType]=(finish[g.finishType]||0)+1);$('#topFinish').textContent=Object.keys(finish).sort((a,b)=>finish[b]-finish[a])[0]||'—';const pRows=state.members.slice(0,4).map(m=>{const played=games.filter(g=>g.players.some(p=>p.name===m.name)).length;const wins=games.filter(g=>g.winner.name===m.name).length;return {name:m.name,played,wins,rate:pct(wins,played)}});$('#playerStats').innerHTML=pRows.map(r=>`<div class="chart-row"><span>${esc(r.name)}</span><div class="track"><div class="fill" style="width:${r.rate}%"></div></div><strong>${r.rate}%</strong></div>`).join('');const dRows=state.decks.map(d=>{const played=games.filter(g=>g.players.some(p=>p.deck===d.name)).length;const wins=games.filter(g=>g.winner.deck===d.name).length;return {name:d.name,rate:pct(wins,played)}});$('#deckStats').innerHTML=dRows.map(r=>`<div class="chart-row"><span>${esc(r.name)}</span><div class="track"><div class="fill" style="width:${r.rate}%"></div></div><strong>${r.rate}%</strong></div>`).join('');$('#recentGames').innerHTML=games.slice(0,8).map(g=>`<div class="history-item"><div class="avatar">${esc(g.winner.name[0])}</div><div><strong>${esc(g.winner.name)} · ${esc(g.winner.commander)}</strong><small>${new Date(g.date).toLocaleDateString()} · Round ${g.rounds} · ${esc(g.finishType)}</small></div><em>WIN</em></div>`).join('')||'<div class="muted">No tracked games yet.</div>'}
 $('#resetData').addEventListener('click',()=>{localStorage.removeItem(storeKey);renderStats();updateHome()});
 
-function updateHome(){$('#homeGames').textContent=readCanonicalGames().length}
+function updateHome(){
+  $('#homeGames').textContent=readCanonicalGames().length;
+  const g=activePlaygroup();
+  if($('#homeGroupPlayers'))$('#homeGroupPlayers').textContent=g?.members?.length||0;
+  if($('#homeDeckCount'))$('#homeDeckCount').textContent=loadLabDecks().length;
+}
+
+async function shareApp(){
+  const data={title:'MTG Tool',text:'MTG Tool — Commander deck intelligence, playgroups, simulation and life counter.',url:location.href};
+  try{
+    if(navigator.share){await navigator.share(data);return}
+  }catch(e){if(e?.name==='AbortError')return}
+  const wa='https://wa.me/?text='+encodeURIComponent(data.text+' '+data.url);
+  window.open(wa,'_blank','noopener');
+}
+function downloadJson(filename,data){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function sharePlaygroupPackage(){
+  const group=activePlaygroup();
+  if(!group)return;
+  const ids=new Set(group.members.map(m=>m.deckId).filter(Boolean));
+  const decks=loadLabDecks().filter(d=>ids.has(d.id));
+  const pkg={schema:'mtg-tool-playgroup-package-v1',exportedAt:new Date().toISOString(),group,decks};
+  const file=new File([JSON.stringify(pkg,null,2)],`${group.name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-mtg-tool.json`,{type:'application/json'});
+  try{
+    if(navigator.canShare?.({files:[file]}) && navigator.share){
+      await navigator.share({title:`MTG Tool · ${group.name}`,text:'Import this MTG Tool playgroup package.',files:[file]});
+      return;
+    }
+  }catch(e){if(e?.name==='AbortError')return}
+  downloadJson(file.name,pkg);
+}
+function importPlaygroupPackage(pkg){
+  if(pkg?.schema!=='mtg-tool-playgroup-package-v1' || !pkg.group)throw new Error('This is not a valid MTG Tool playgroup package.');
+  const decks=loadLabDecks();
+  const idMap={};
+  for(const incoming of pkg.decks||[]){
+    let id=incoming.id;
+    if(decks.some(d=>d.id===id)){
+      id='deck_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+    }
+    idMap[incoming.id]=id;
+    decks.push({...incoming,id,name:decks.some(d=>d.name===incoming.name)?incoming.name+' (imported)':incoming.name});
+  }
+  saveLabDecks(decks);
+  const groups=loadPlaygroups();
+  let gid=pkg.group.id;
+  if(groups.some(g=>g.id===gid))gid='group_'+Date.now().toString(36);
+  const group={...pkg.group,id:gid,name:groups.some(g=>g.name===pkg.group.name)?pkg.group.name+' (imported)':pkg.group.name,
+    members:(pkg.group.members||[]).map(m=>({...m,deckId:m.deckId?idMap[m.deckId]||m.deckId:null}))};
+  groups.push(group);savePlaygroups(groups);localStorage.setItem(activePlaygroupKey,gid);
+  renderPlaygroup();refreshLabUI();renderSeatSetup();updateHome();
+}
+function exportFullBackup(){
+  const data={schema:'mtg-tool-backup-v1',exportedAt:new Date().toISOString(),localStorage:{}};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k?.startsWith('mtg-tool')||k?.startsWith('mdie')||k?.startsWith('mtgtool'))data.localStorage[k]=localStorage.getItem(k);
+  }
+  downloadJson(`mtg-tool-backup-${new Date().toISOString().slice(0,10)}.json`,data);
+}
+function importFullBackup(data){
+  if(data?.schema!=='mtg-tool-backup-v1'||!data.localStorage)throw new Error('Invalid MTG Tool backup.');
+  for(const [k,v] of Object.entries(data.localStorage))localStorage.setItem(k,String(v));
+  location.reload();
+}
+
 let deferredPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden')});
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
-function restoreActive(){try{const raw=localStorage.getItem(activeKey);if(!raw)return;const v=JSON.parse(raw);if(v&&v.game){state.game=v.game;state.mode=v.mode||'tracked';$('#playSetup').classList.add('hidden');$('#playGame').classList.remove('hidden');document.body.classList.add('game-active');renderGame();startTimer()}}catch{}}
+function restoreActive(){try{const raw=localStorage.getItem(activeKey);if(!raw)return;const v=JSON.parse(raw);if(v&&v.game){state.game=v.game;state.mode=v.mode||'tracked';$('#playSetup').classList.add('hidden');$('#playGame').classList.remove('hidden');document.body.classList.add('game-active');renderGame();startTimer();hydrateCommanderArt()}}catch{}}
 renderDecks();renderMembers();renderSeatSetup();renderStats();updateHome();restoreActive();
 
 // --- Master Integration: persistent Deck Library + MDIE V2.x engine ---
@@ -1415,8 +1672,8 @@ function disruptSubsystem(targetState,subsystem,severity,rng=null){
   }
 }
 
-function runSinglePod(user,players,env,rng){
-  const states=buildPod(user,players,env,rng).map(freshPodState);
+function runSinglePod(user,players,env,rng,fixedProfiles=null){
+  const states=(fixedProfiles?.length?fixedProfiles:buildPod(user,players,env,rng)).map(freshPodState);
   let wipes=0,sharedAnswers=0,userBehind=false,firstPressure=null;
   const contributor={},subsystemPressure={setup:0,payoff:0,finish:0};
 
@@ -1525,6 +1782,46 @@ function runSinglePod(user,players,env,rng){
     stageProgress:{...userState.stageProgress}
   };
 }
+
+function linkedGroupProfiles(group,targetDeck){
+  const profiles=[];
+  const targetV=currentLabVersion(targetDeck);
+  if(!targetV?.analysis)return [];
+  profiles.push(userPodProfile(targetDeck,targetV.analysis));
+  for(const m of group.members||[]){
+    const d=linkedDeckForMember(m);
+    if(!d || d.id===targetDeck.id)continue;
+    const v=currentLabVersion(d);
+    if(!v?.analysis)continue;
+    const p=userPodProfile(d,v.analysis);
+    p.isUser=false;
+    profiles.push(p);
+  }
+  return profiles.slice(0,6);
+}
+function runPlaygroupSimulation(targetDeck,group,runs=5000){
+  const profiles=linkedGroupProfiles(group,targetDeck);
+  if(profiles.length<2)throw new Error('Link and analyze at least one opponent deck in this playgroup.');
+  const seed=simHash(`${targetDeck.id}|${group.id}|${runs}|playgroup-v1`);
+  const rng=simRng(seed);
+  let behind=0,rank=0,engine=0,finish=0,cascade=0,disabled=0;
+  const bottlenecks={setup:0,payoff:0,finish:0},contributors={};
+  for(let i=0;i<runs;i++){
+    const r=runSinglePod(profiles[0],profiles.length,'Playgroup',rng,profiles);
+    behind+=r.behind?1:0;rank+=r.rank;engine+=r.engineTurn;finish+=r.finishTurn;
+    cascade+=r.cascadeFailures||0;disabled+=r.disabledNodeCount||0;
+    bottlenecks[r.bottleneckStage]=(bottlenecks[r.bottleneckStage]||0)+1;
+    contributors[r.topContributor]=(contributors[r.topContributor]||0)+1;
+  }
+  return {
+    seed,runs,players:profiles.length,
+    behind:behind/runs,avgRank:rank/runs,engineTurn:engine/runs,finishTurn:finish/runs,
+    cascadeFailures:cascade/runs,disabledNodes:disabled/runs,
+    bottleneck:Object.entries(bottlenecks).sort((a,b)=>b[1]-a[1])[0]?.[0]||'setup',
+    contributor:Object.entries(contributors).sort((a,b)=>b[1]-a[1])[0]?.[0]||'Mixed pressure'
+  };
+}
+
 function runMasterPodSimulation(deck,a,players,env,runs,seedOverride=null){
   const seed=seedOverride ?? simHash(`${deck.id}|v${currentLabVersion(deck).version}|${players}|${env}|${runs}|pod-state-v14`);
   const rng=simRng(seed),user=userPodProfile(deck,a);
@@ -1818,7 +2115,7 @@ $('#buildLabPackage')?.addEventListener('click',async()=>{
       if(x)x.qty=+(x.qty||1)+1;else cards.push({qty:1,name:t.in});
     }
 
-    const virtual={version:v.version+1,createdAt:new Date().toISOString(),cards,source:'mdie-master-v58-evidence',note:'MDIE evidence-backed dependency repair package'};
+    const virtual={version:v.version+1,createdAt:new Date().toISOString(),cards,source:'mdie-master-v60-evidence',note:'MDIE evidence-backed dependency repair package'};
     const afterResult=await analyzeLabVersion(d,virtual,3000),after=afterResult.analysis;after._expandedCards=afterResult.cards;
     const seed=simHash(`${d.id}|5|Balanced|3000|mdie-package-v52`);
     const beforePod=runMasterPodSimulation(d,v.analysis,5,'Balanced',3000,seed);
@@ -1957,3 +2254,56 @@ migrateGameHistoryV3();
 renderLabDiagnostics();
 
 $('#labCalibrationDeck')?.addEventListener('change',e=>renderCalibration(e.target.value));
+
+
+$('#shareAppBtn')?.addEventListener('click',shareApp);
+$('#playgroupSelect')?.addEventListener('change',e=>{localStorage.setItem(activePlaygroupKey,e.target.value);renderPlaygroup();renderSeatSetup();updateHome()});
+$('#newGroupBtn')?.addEventListener('click',()=>{
+  const name=prompt('Playgroup name?','New Playgroup');if(!name)return;
+  const groups=loadPlaygroups(),g={id:'group_'+Date.now().toString(36),name:name.trim(),createdAt:new Date().toISOString(),members:[]};
+  groups.push(g);savePlaygroups(groups);localStorage.setItem(activePlaygroupKey,g.id);renderPlaygroup();renderSeatSetup();updateHome();
+});
+$('#renameGroupBtn')?.addEventListener('click',()=>{
+  const g=activePlaygroup();if(!g)return;const name=prompt('Playgroup name?',g.name);if(!name)return;
+  g.name=name.trim();saveActivePlaygroup(g);renderPlaygroup();
+});
+$('#addMemberBtn')?.addEventListener('click',()=>{
+  const name=$('#newMemberName')?.value.trim();if(!name)return alert('Enter a player name.');
+  const g=activePlaygroup(),deckId=$('#newMemberDeck')?.value||null,d=deckId?getLabDeck(deckId):null;
+  g.members.push({id:'member_'+Date.now().toString(36),name,deckId,manualDeck:d?.name||'',commander:d?.commander||''});
+  saveActivePlaygroup(g);$('#newMemberName').value='';renderPlaygroup();renderSeatSetup();updateHome();
+});
+$('#shareGroupBtn')?.addEventListener('click',sharePlaygroupPackage);
+$('#importGroupBtn')?.addEventListener('click',()=>$('#importGroupFile')?.click());
+$('#importGroupFile')?.addEventListener('change',async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  try{importPlaygroupPackage(JSON.parse(await f.text()))}catch(err){alert(err.message)}
+  e.target.value='';
+});
+$('#runGroupSimulation')?.addEventListener('click',()=>{
+  const d=getLabDeck($('#groupSimDeck')?.value);if(!d)return alert('Select a saved deck.');
+  if(!currentLabVersion(d)?.analysis)return alert('Analyze the test deck first.');
+  const group=activePlaygroup(),runs=+($('#groupSimRuns')?.value||5000),box=$('#groupSimulationResult');
+  box.classList.remove('hidden');box.innerHTML='<p class="muted">Running deterministic playgroup simulation…</p>';
+  try{
+    const r=runPlaygroupSimulation(d,group,runs);
+    box.innerHTML=`<div class="section-title-row"><div><b>${esc(d.name)} vs ${esc(group.name)}</b><small class="muted">${runs.toLocaleString()} deterministic sequences · ${r.players} modeled players · seed ${r.seed}</small></div><span class="status-pill">MSE GROUP</span></div>
+    <div class="lab-metrics">
+      <span><small>Behind early</small><strong>${Math.round(r.behind*100)}%</strong></span>
+      <span><small>Avg pod rank</small><strong>${r.avgRank.toFixed(2)}</strong></span>
+      <span><small>Setup → payoff</small><strong>T${r.engineTurn.toFixed(1)}</strong></span>
+      <span><small>Finish online</small><strong>T${r.finishTurn.toFixed(1)}</strong></span>
+    </div>
+    <div class="lab-compare"><span>Cascade failures <b>${r.cascadeFailures.toFixed(2)}</b></span><span>Disabled nodes <b>${r.disabledNodes.toFixed(2)}</b></span><span>Bottleneck <b>${esc(r.bottleneck)}</b></span><span>Top pressure <b>${esc(r.contributor)}</b></span></div>`;
+  }catch(err){box.innerHTML=`<p class="warn">${esc(err.message)}</p>`}
+});
+$('#exportBackupBtn')?.addEventListener('click',exportFullBackup);
+$('#importBackupBtn')?.addEventListener('click',()=>$('#importBackupFile')?.click());
+$('#importBackupFile')?.addEventListener('change',async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  try{importFullBackup(JSON.parse(await f.text()))}catch(err){alert(err.message)}
+  e.target.value='';
+});
+
+
+loadPlaygroups();syncStateMembersFromGroup();renderPlaygroup();updateHome();

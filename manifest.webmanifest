@@ -1,5 +1,5 @@
 {
-  "name": "MTG Tool Master V3.1 Alpha",
+  "name": "MTG Tool",
   "short_name": "MTG Tool",
   "start_url": "./",
   "display": "standalone",
@@ -16,5 +16,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "Commander deck intelligence, playgroups, multiplayer simulation, life counter and game statistics."
 }

@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="styles.css">
-  <title>MTG Tool Master V5.8 Alpha</title>
+  <title>MTG Tool Master V6.0.1 Alpha</title>
 
 <style>
 .editor-card{display:grid;grid-template-columns:68px 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px}
@@ -77,7 +77,7 @@
         <div class="brand-mark" aria-hidden="true">M</div>
         <div><div class="eyebrow">MTG TOOL</div><h1 id="screenTitle">Home</h1></div>
       </div>
-      <button id="installBtn" class="icon-btn hidden" type="button">Install</button>
+      <div class="top-actions"><button id="shareAppBtn" class="icon-btn" type="button">Share</button><button id="installBtn" class="icon-btn hidden" type="button">Install</button></div>
     </header>
 
     <section class="screen active" data-screen="home">
@@ -89,8 +89,8 @@
       </article>
       <div class="metric-strip">
         <article><span>Tracked games</span><strong id="homeGames">0</strong><small>this device</small></article>
-        <article><span>Playgroup</span><strong>4</strong><small>active players</small></article>
-        <article><span>Decks</span><strong>4</strong><small>active</small></article>
+        <article><span>Playgroup</span><strong id="homeGroupPlayers">0</strong><small>active players</small></article>
+        <article><span>Decks</span><strong id="homeDeckCount">0</strong><small>active</small></article>
       </div>
       <article class="section-card intelligence-card">
         <div class="section-title-row"><div><span class="eyebrow">MDIE SNAPSHOT</span><h3>Atraxa Counters</h3></div><span class="status-pill">Prototype</span></div>
@@ -112,7 +112,7 @@
       </article>
 
       <article class="section-card">
-        <div class="section-title-row"><div><span class="eyebrow">MDIE</span><h3>Deck Intelligence Lab</h3></div><span class="status-pill">Master V5.8</span></div>
+        <div class="section-title-row"><div><span class="eyebrow">MDIE</span><h3>Deck Intelligence Lab</h3></div><span class="status-pill">Master V6.0</span></div>
         <div class="lab-tabs"><button class="active" data-lab-tab="analyze" type="button">Analyze</button><button data-lab-tab="simulate" type="button">Pod test</button><button data-lab-tab="improve" type="button">Improve</button><button data-lab-tab="versions" type="button">Versions</button><button data-lab-tab="diagnostics" type="button">Diagnostics</button></div>
 
         <div class="lab-panel active" data-lab-panel="analyze">
@@ -154,16 +154,69 @@
             <label class="lab-label">Calibration deck<select id="labCalibrationDeck"></select></label>
             <div id="labCalibrationSummary" class="lab-metrics"></div>
             <div id="labCalibrationRows" style="margin-top:10px"></div>
+            <div class="analysis-box" style="margin-top:14px">
+              <div class="section-title-row"><div><span class="eyebrow">LOCAL DATA</span><h3>Backup & restore</h3></div></div>
+              <div class="group-actions">
+                <button id="exportBackupBtn" type="button">Export backup</button>
+                <button id="importBackupBtn" type="button">Restore backup</button>
+                <input id="importBackupFile" class="hidden" type="file" accept=".json,application/json">
+              </div>
+              <p class="muted">Backups include local decks, playgroups, tracked games, seat bindings and MTG Tool settings on this device.</p>
+            </div>
           </div>
         </div>
       </article>
     </section>
 
     <section class="screen" data-screen="groups">
-      <div class="section-head"><div><div class="eyebrow">PLAYGROUP</div><h2>Friday Night Commanders</h2></div><button class="icon-btn" type="button">＋</button></div>
-      <article class="group-banner"><div class="avatar-stack"><span>M</span><span>P</span><span>J</span><span>S</span></div><div><strong>4 players · 4 decks</strong><small>23 prototype games</small></div></article>
+      <div class="section-head">
+        <div><div class="eyebrow">PLAYGROUP</div><h2 id="groupTitle">My Playgroup</h2></div>
+        <button id="newGroupBtn" class="icon-btn" type="button">＋</button>
+      </div>
+
+      <article class="section-card">
+        <label>Active playgroup<select id="playgroupSelect"></select></label>
+        <div class="group-actions" style="margin-top:10px">
+          <button id="renameGroupBtn" type="button">Rename</button>
+          <button id="shareGroupBtn" type="button">Share group</button>
+          <button id="importGroupBtn" type="button">Import group</button>
+          <input id="importGroupFile" class="hidden" type="file" accept=".json,application/json">
+        </div>
+      </article>
+
+      <article class="group-banner">
+        <div class="avatar-stack" id="groupAvatarStack"></div>
+        <div><strong id="groupSummary">0 players · 0 linked decks</strong><small id="groupGameSummary">No tracked games yet</small></div>
+      </article>
+
       <div id="memberList" class="member-grid"></div>
-      <article class="section-card"><div class="section-title-row"><div><span class="eyebrow">PLAYGROUP DNA</span><h3>Table pressure</h3></div></div><div class="profile-row"><span>Early aggression</span><div><i style="--v:79%"></i></div><strong>High</strong></div><div class="profile-row"><span>Graveyard</span><div><i style="--v:58%"></i></div><strong>Med</strong></div><div class="profile-row"><span>Artifacts</span><div><i style="--v:53%"></i></div><strong>Med</strong></div></article>
+
+      <article class="section-card">
+        <div class="section-title-row">
+          <div><span class="eyebrow">MEMBERS</span><h3>Add player</h3></div>
+        </div>
+        <div class="setup-grid-2">
+          <label><span>Name</span><input id="newMemberName" placeholder="Player name"></label>
+          <label><span>Saved deck</span><select id="newMemberDeck"></select></label>
+        </div>
+        <button id="addMemberBtn" class="primary full" style="margin-top:10px" type="button">Add to playgroup</button>
+      </article>
+
+      <article class="section-card">
+        <div class="section-title-row"><div><span class="eyebrow">PLAYGROUP DNA</span><h3>Table profile</h3></div><span id="groupDnaConfidence" class="status-pill">NO DATA</span></div>
+        <div id="groupDnaProfile"></div>
+      </article>
+
+      <article class="section-card">
+        <div class="section-title-row"><div><span class="eyebrow">PLAYGROUP SIMULATION</span><h3>Test a deck against this group</h3></div><span class="status-pill">MSE</span></div>
+        <label>Deck to test<select id="groupSimDeck"></select></label>
+        <div class="setup-grid-2" style="margin-top:8px">
+          <label><span>Sequences</span><select id="groupSimRuns"><option value="2000">2,000</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></label>
+          <label><span>Pod</span><input id="groupPodSize" readonly value="Based on linked members"></label>
+        </div>
+        <button id="runGroupSimulation" class="primary full" style="margin-top:10px" type="button">Run against playgroup</button>
+        <div id="groupSimulationResult" class="hidden" style="margin-top:10px"></div>
+      </article>
     </section>
 
     <section class="screen play-screen" data-screen="play">

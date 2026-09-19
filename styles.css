@@ -79,3 +79,12 @@ body.game-active{padding-bottom:0;overflow:hidden}body.game-active main{padding-
 .seat-bind-row{align-items:flex-start}
 .seat-bind-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
 .seat-bind-main select{width:100%;margin-top:4px;background:var(--panel-2,#151821);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:12px}
+
+.top-actions{display:flex;gap:8px;align-items:center}
+.group-actions{display:flex;flex-wrap:wrap;gap:8px}
+.group-member-card{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.group-member-card .avatar{align-self:flex-start}
+.group-member-card select{width:100%;background:rgba(11,14,19,.76);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:7px;font-size:11px}
+.group-member-card em{font-size:10px;color:var(--accent);font-style:normal}
+.mini-danger{font-size:10px;padding:6px 8px;border-color:rgba(255,95,95,.35);color:#ff9a9a}
+@media(max-width:620px){.group-actions>*{flex:1 1 calc(50% - 8px)}}

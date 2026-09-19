@@ -1,52 +1,103 @@
-# MTG Tool Master V5.8 Alpha — Exact Play Seat Binding / MSE v14
+# MTG Tool V6.0 Beta Candidate
 
-V5.8 fixes the most important remaining lineage weakness found during automatic calibration work.
+V6.0 consolidates the current project into one local-first mobile PWA Beta.
 
-## Explicit saved-deck binding per Play seat
+## Core product areas
 
-Each player seat in the tracked-game setup can now be bound directly to a saved deck.
+### Decks
+- Commander and Pauper Commander-oriented deck storage
+- commander / partner fields
+- versioned deck snapshots
+- Scryfall enrichment
+- card browser/editor
+- color identity and structural legality checks
+- maybeboard, favorites and custom categories
+- source URL references
+- Deck DNA / archetype / structural dimensions
 
-The selector displays:
-- deck name
-- exact current deck version
-- commander
+### MDIE
+- deterministic recommendation ranking
+- Setup -> Payoff -> Finish model
+- card-level dependency nodes
+- required vs supportive dependency edges
+- engine clusters
+- critical paths
+- redundancy / substitute paths
+- cascade failures
+- Scryfall candidate discovery
+- virtual OUT -> IN testing
+- fixed-seed A/B validation
+- evidence-backed recommendation packages
+- metadata-confidence gates
+- inspectable accepted recommendation evidence
 
-The binding is stored by player/member and reused in later games.
+### Master Simulation Engine
+- deterministic 4 / 5 / 6 player simulations
+- 2k / 5k / 10k sequences
+- stage progression
+- targeted/shared interaction
+- board wipes
+- disruption classes
+- recovery
+- dependency-node failure and cascades
+- fixed-seed before/after comparisons
 
-## Game-start snapshot
+### Real Playgroups
+- multiple local playgroups
+- add/remove players
+- link exact saved decks to players
+- table DNA from analyzed decks
+- exact saved-deck binding for tracked games
+- playgroup simulation against actual linked/analyzed deck profiles
+- portable playgroup package import/export
 
-When the game starts, MTG Tool snapshots:
-- Deck ID
-- exact Deck Version
-- deck name
-- commander
+### Play
+- mobile commander life-counter table
+- commander artwork backgrounds
+- 1-6 player seating
+- life, poison, commander damage and counters
+- hold/tap life controls
+- turn tracking
+- timers
+- Monarch / Initiative / Day-Night
+- dice / coin / random player utilities
+- tracked/quick games
+- gameplay telemetry
 
-Historical games therefore remain linked to the version actually used at game start, even if the deck is edited later.
+### Statistics / Calibration
+- player/deck/game history
+- exact Deck ID + Version lineage
+- telemetry integrity
+- predicted vs observed metrics
+- prediction error / MAE / bias
+- confidence bands and calibration guards
+- diagnostics and evidence inspection
 
-## Legacy fallback
+### PWA / Sharing
+- installable static PWA
+- offline app shell
+- Web Share / WhatsApp fallback for app sharing
+- playgroup package sharing when file-share support is available
+- full local backup / restore
 
-Older users/records without explicit bindings can still resolve by an unambiguous exact deck-name match.
+## Product boundary
 
-However:
-- legacy-resolved references are marked
-- they no longer count as high-integrity exact-version calibration data
-- V5.6/V5.7 calibration uses explicit exact-version references only
+V6.0 is a local-first Beta Candidate.
 
-## Integrity semantics
+It does NOT yet provide:
+- server accounts
+- live cloud synchronization between friends
+- automatic cross-device collaboration
+- a complete Magic Comprehensive Rules engine
+- guaranteed direct import from third-party sites that do not expose stable browser-accessible APIs
 
-High telemetry integrity now requires every player seat to be explicitly bound to a saved Deck ID + Version.
+Playgroup packages and app links provide the current share/collaboration workflow without requiring a backend.
 
-Diagnostics exposes saved-seat binding coverage.
-
-## Why development pauses here
-
-The next meaningful calibration improvement requires real tracked games generated through this exact seat-binding path.
-
-Continuing to change calibration formulas before collecting that data would risk optimizing against synthetic assumptions rather than observed behavior.
-
-Recommended next action:
-1. deploy/test V5.8 on phone
-2. bind saved decks to the actual players in a tracked game
-3. record several games
-4. return to Diagnostics -> Calibration
-5. use the resulting exact-version prediction error to decide the next model change
+## Final QA performed
+- JavaScript syntax validation
+- required PWA runtime file audit
+- service worker / manifest presence
+- unique core event-handler audit
+- group simulation hook audit
+- share / backup hook audit
+- versioned-deck / Play telemetry architecture preserved

@@ -1,4 +1,4 @@
-const CACHE='mtg-tool-v58';
+const CACHE='mtg-tool-v60-beta';
 const APP_SHELL=[
   './','./index.html','./styles.css','./app.js','./manifest.webmanifest',
   './icon-192.png','./icon-512.png'
