@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MTG Tool V2.2 Integrated Alpha</title>
+<meta name="theme-color" content="#090a0c">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{--bg:#090a0c;--panel:#12141a;--card:#191c23;--line:#2b303a;--text:#f5f6f8;--muted:#9199aa;--accent:#f1a84b;--good:#61d18a;--warn:#efc45b;--bad:#ef6b72;--blue:#6ba7ff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}.app{max-width:900px;margin:auto;padding:14px 12px 96px}.top{display:flex;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}h1{font-size:23px;margin:3px 0 4px}.muted{color:var(--muted)}.small{font-size:12px}.badge{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;height:max-content}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:9px}
+button{min-height:44px;border:1px solid var(--line);border-radius:12px;background:#14171d;color:var(--text);font-weight:750;padding:8px 10px}button.primary,.nav button.active{background:#2a2116;border-color:#7b5b2e}
+.nav{position:sticky;bottom:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#090a0cef;backdrop-filter:blur(14px);padding:7px;border:1px solid var(--line);border-radius:16px;margin-top:16px;z-index:20}.nav button{font-size:11px;padding:5px;min-width:0}
+.screen{display:none}.screen.active{display:block}.section-title{font-weight:850;margin-bottom:10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.metric{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px}.metric strong{display:block;font-size:20px}.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+input,textarea,select{width:100%;background:#0f1116;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px}textarea{min-height:150px}.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.chip{border:1px solid var(--line);border-radius:999px;padding:4px 7px;font-size:11px;color:var(--muted)}
+.callout{background:#17140f;border-left:4px solid var(--accent);border-radius:12px;padding:11px 13px}.deckhead,.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.lifegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.player{position:relative;overflow:hidden;background:linear-gradient(145deg,#232631,#12141a);border:1px solid var(--line);border-radius:17px;min-height:220px;padding:13px;display:flex;flex-direction:column;justify-content:space-between;background-size:cover;background-position:center}.player:before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.22) 38%,rgba(0,0,0,.64));z-index:0}.player>*{position:relative;z-index:1}.life{font-size:58px;font-weight:900;text-align:center;line-height:1}.lifecontrols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lifecontrols button{font-size:28px;min-height:66px;background:rgba(0,0,0,.28)}.turnbar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}.pass{grid-column:span 2;background:#2a2116;border-color:#7b5b2e}.stage{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stage .metric{text-align:center}.progress{height:8px;background:#222630;border:1px solid var(--line);border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--accent)}.hidden{display:none!important}
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr}.lifegrid{gap:6px}.player{min-height:205px;padding:10px}.life{font-size:52px}.stage{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div><div class="eyebrow">MTG Tool</div><h1>V2.2 Integrated Alpha</h1><div class="small muted">First connected phone-test milestone</div></div><div class="badge">GitHub-ready</div></div>
+
+<section id="decks" class="screen active">
+<div class="panel">
+<div class="row"><div><div class="section-title">Deck Library</div><div class="small muted">Persistent on this device/browser.</div></div><button id="toggleImport" class="primary">+ Import</button></div>
+<div id="importPanel" class="hidden" style="margin-top:12px">
+<label class="small muted">Deck name</label><input id="deckName" value="Atraxa Counters">
+<label class="small muted" style="display:block;margin-top:8px">Commander</label><input id="commander" value="Atraxa, Praetors' Voice">
+<label class="small muted" style="display:block;margin-top:8px">Paste deck list</label><textarea id="deckText">1 Sol Ring
+1 Arcane Signet
+1 Hardened Scales
+1 Evolution Sage
+1 Heroic Intervention
+1 Walking Ballista
+36 Forest</textarea>
+<button id="saveDeck" class="primary" style="width:100%;margin-top:8px">Save deck</button>
+</div>
+<div id="deckList" style="margin-top:10px"></div>
+</div>
+<div class="callout"><b>Testing goal:</b> create/import one deck here. The same saved record will appear in Analyze, Simulate, Improve and Play.</div>
+</section>
+
+<section id="analyze" class="screen">
+<div class="panel"><div class="section-title">Deck Analysis</div><select id="analysisDeck"></select><button id="runAnalysis" class="primary" style="width:100%;margin-top:8px">Analyze selected version</button></div>
+<div id="analysisResult" class="hidden">
+<div class="grid3">
+<div class="metric"><span class="small muted">Cards</span><strong id="aCards">0</strong></div>
+<div class="metric"><span class="small muted">Lands proxy</span><strong id="aLands">0</strong></div>
+<div class="metric"><span class="small muted">Nonlands</span><strong id="aSpells">0</strong></div>
+</div>
+<div class="panel" style="margin-top:10px"><div class="section-title">Deck DNA prototype</div>
+<div class="stage"><div class="metric"><span class="small muted">Setup</span><strong>72</strong></div><div class="metric"><span class="small muted">Payoff</span><strong>78</strong></div><div class="metric"><span class="small muted">Protection</span><strong class="warn">48</strong></div><div class="metric"><span class="small muted">Finish</span><strong>70</strong></div></div>
+<div style="margin-top:12px"><div class="small row"><span>Confidence</span><b>74%</b></div><div class="progress"><span style="width:74%"></span></div></div>
+</div>
+<div class="callout"><b>Current prototype finding:</b> protection/recovery is treated as the weakest subsystem. In later builds this will come from enriched Scryfall role classification rather than fixture values.</div>
+</div>
+</section>
+
+<section id="simulate" class="screen">
+<div class="panel"><div class="section-title">Pod Stress Test</div><select id="simDeck"></select>
+<div class="grid2" style="margin-top:8px"><label class="small muted">Pod size<select id="podSize"><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option></select></label><label class="small muted">Environment<select id="environment"><option>Balanced</option><option>Fast Pressure</option><option>Artifact Heavy</option><option>Graveyard / Value</option></select></label></div>
+<button id="runSim" class="primary" style="width:100%;margin-top:8px">Run 5,000 modeled sequences</button></div>
+<div id="simResult" class="hidden">
+<div class="grid3"><div class="metric"><span class="small muted">Behind early</span><strong id="sEarly">42%</strong></div><div class="metric"><span class="small muted">Engine disrupted</span><strong id="sDisrupt">31%</strong></div><div class="metric"><span class="small muted">Recovery delay</span><strong id="sDelay">0.8 turns</strong></div></div>
+<div class="panel" style="margin-top:10px"><div class="section-title">Primary bottleneck</div><b id="sBottle">Protection / recovery</b><div class="small muted" style="margin-top:5px">Synthetic test-pool result. Confidence is intentionally limited until real deck data and real games are available.</div></div>
+</div>
+</section>
+
+<section id="improve" class="screen">
+<div class="panel"><div class="section-title">Virtual Improvement</div><select id="improveDeck"></select>
+<label class="small muted" style="display:block;margin-top:8px">Goal<select id="goal"><option>Balanced improvement</option><option>Survive fast pods</option><option>Increase resilience</option><option>Reduce commander reliance</option></select></label>
+<button id="recommend" class="primary" style="width:100%;margin-top:8px">Generate virtual package</button></div>
+<div id="recommendResult" class="hidden">
+<div class="panel"><div class="deckhead"><div><b>Package A</b><div class="small muted">3-card virtual change</div></div><strong class="good">+9.5</strong></div>
+<div class="grid2" style="margin-top:10px"><div class="metric"><span class="small bad">OUT</span><strong>Top-end slot</strong><span class="small muted">+ redundant payoff + slow value</span></div><div class="metric"><span class="small good">IN</span><strong>Protection</strong><span class="small muted">+ cheap interaction + flexible ramp/value</span></div></div>
+<div class="chips"><span class="chip">Early stress −10 pp</span><span class="chip">Recovery +16 pp</span><span class="chip">DNA retained 96%</span></div>
+<button id="acceptPackage" class="primary" style="width:100%;margin-top:10px">Accept as new deck snapshot</button></div>
+<div id="acceptMsg" class="callout hidden"></div>
+</div>
+</section>
+
+<section id="play" class="screen">
+<div id="playSetup" class="panel">
+<div class="section-title">Quick Tracked Game</div><select id="playDeck"></select><label class="small muted" style="display:block;margin-top:8px">Players<select id="playerCount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label><button id="startGame" class="primary" style="width:100%;margin-top:8px">Start table</button></div>
+<div id="game" class="hidden">
+<div id="lifeGrid" class="lifegrid"></div>
+<div class="turnbar"><button id="exitGame">Exit</button><button id="undoLife">Undo</button><button id="passTurn" class="pass">PASS TURN</button></div>
+<div class="small muted" id="turnInfo" style="text-align:center;margin-top:8px"></div>
+</div>
+</section>
+
+<div class="nav">
+<button class="navbtn active" data-screen="decks">Decks</button><button class="navbtn" data-screen="analyze">Analyze</button><button class="navbtn" data-screen="simulate">Simulate</button><button class="navbtn" data-screen="improve">Improve</button><button class="navbtn" data-screen="play">Play</button>
+</div>
+</div>
+
+<script>
+const KEY='mtgtool.v22.decks';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d));refreshAll()}
+function parse(text){return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d+)\s+(.+)$/);return{qty:m?+m[1]:1,name:m?m[2]:l}})}
+function currentVersion(d){return d.versions[d.versions.length-1]}
+function refreshAll(){
+ const decks=load();
+ $('deckList').innerHTML=decks.length?decks.map(d=>{const v=currentVersion(d);return `<div class="card"><div class="deckhead"><div><b>${esc(d.name)}</b><div class="small muted">${esc(d.commander||'Commander not set')}</div></div><span class="small">v${v.version}</span></div><div class="chips"><span class="chip">${v.cards.reduce((a,c)=>a+c.qty,0)} cards</span><span class="chip">${d.format}</span><span class="chip">${d.id.slice(-6)}</span></div></div>`}).join(''):'<div class="small muted">No decks saved yet. Import a deck to test the connected workflow.</div>';
+ ['analysisDeck','simDeck','improveDeck','playDeck'].forEach(id=>{
+  const el=$(id),old=el.value;el.innerHTML=decks.map(d=>`<option value="${d.id}">${esc(d.name)} — v${currentVersion(d).version}</option>`).join('');if(decks.some(d=>d.id===old))el.value=old;
+ });
+}
+function getDeck(id){return load().find(d=>d.id===id)}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.screen).classList.add('active')});
+$('toggleImport').onclick=()=>$('importPanel').classList.toggle('hidden');
+$('saveDeck').onclick=()=>{
+ let decks=load(),cards=parse($('deckText').value),id='deck_'+Date.now().toString(36);
+ decks.push({id,name:$('deckName').value.trim()||'Untitled',commander:$('commander').value.trim(),format:'Commander',createdAt:new Date().toISOString(),versions:[{version:1,createdAt:new Date().toISOString(),cards,source:'paste'}]});
+ save(decks);$('importPanel').classList.add('hidden');
+};
+$('runAnalysis').onclick=()=>{
+ const d=getDeck($('analysisDeck').value);if(!d)return alert('Import a deck first.');
+ const cards=currentVersion(d).cards,total=cards.reduce((a,c)=>a+c.qty,0),lands=cards.filter(c=>/(forest|island|swamp|mountain|plains|land)/i.test(c.name)).reduce((a,c)=>a+c.qty,0);
+ $('aCards').textContent=total;$('aLands').textContent=lands;$('aSpells').textContent=Math.max(0,total-lands);$('analysisResult').classList.remove('hidden');
+};
+$('runSim').onclick=()=>{
+ if(!getDeck($('simDeck').value))return alert('Import a deck first.');
+ const env=$('environment').value;
+ const data={Balanced:[42,31,'0.8 turns','Protection / recovery'],'Fast Pressure':[61,37,'1.2 turns','Early interaction timing'],'Artifact Heavy':[49,44,'1.0 turns','Artifact-engine disruption'],'Graveyard / Value':[34,28,'0.7 turns','Graveyard interaction coverage']}[env];
+ $('sEarly').textContent=data[0]+'%';$('sDisrupt').textContent=data[1]+'%';$('sDelay').textContent=data[2];$('sBottle').textContent=data[3];$('simResult').classList.remove('hidden');
+};
+$('recommend').onclick=()=>{if(!getDeck($('improveDeck').value))return alert('Import a deck first.');$('recommendResult').classList.remove('hidden')};
+$('acceptPackage').onclick=()=>{
+ let decks=load(),idx=decks.findIndex(d=>d.id===$('improveDeck').value);if(idx<0)return;
+ let prev=currentVersion(decks[idx]);decks[idx].versions.push({version:prev.version+1,createdAt:new Date().toISOString(),cards:JSON.parse(JSON.stringify(prev.cards)),source:'virtual-package-alpha',note:'Package A accepted; card list unchanged in fixture build'});
+ save(decks);$('acceptMsg').textContent='New version snapshot created. In the real recommendation engine, accepted card changes will be written into this snapshot.';$('acceptMsg').classList.remove('hidden');
+};
+let gamePlayers=[],turn=0,undo=[];
+function renderGame(){
+ $('lifeGrid').innerHTML=gamePlayers.map((p,i)=>`<div class="player"><div><b>${esc(p.name)}</b><div class="small">${esc(p.commander)}</div></div><div><div class="life">${p.life}</div><div class="lifecontrols"><button data-i="${i}" data-d="-1">−</button><button data-i="${i}" data-d="1">+</button></div></div></div>`).join('');
+ document.querySelectorAll('.lifecontrols button').forEach(b=>b.onclick=()=>{undo.push(JSON.stringify(gamePlayers));gamePlayers[+b.dataset.i].life+=+b.dataset.d;renderGame()});
+ $('turnInfo').textContent=`Turn: ${gamePlayers[turn]?.name||''}`;
+}
+$('startGame').onclick=()=>{
+ const d=getDeck($('playDeck').value);if(!d)return alert('Import a deck first.');
+ const n=+$('playerCount').value;gamePlayers=Array.from({length:n},(_,i)=>({name:i===0?'You':'Player '+(i+1),commander:i===0?d.commander:'Test Commander '+(i+1),life:40}));turn=0;undo=[];$('playSetup').classList.add('hidden');$('game').classList.remove('hidden');renderGame()
+};
+$('passTurn').onclick=()=>{if(!gamePlayers.length)return;turn=(turn+1)%gamePlayers.length;renderGame()};
+$('undoLife').onclick=()=>{if(!undo.length)return;gamePlayers=JSON.parse(undo.pop());renderGame()};
+$('exitGame').onclick=()=>{$('game').classList.add('hidden');$('playSetup').classList.remove('hidden')};
+refreshAll();
+if('serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+</script>
+</body></html>
