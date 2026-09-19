@@ -1,284 +1,229 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>MTG Tool V2.3 Integrated Alpha</title>
-<meta name="theme-color" content="#090a0c">
-<link rel="manifest" href="./manifest.webmanifest">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#090b0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MTG Tool">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>MTG Tool Master V5.8 Alpha</title>
+
 <style>
-:root{--bg:#090a0c;--panel:#12141a;--card:#191c23;--line:#2b303a;--text:#f5f6f8;--muted:#9199aa;--accent:#f1a84b;--good:#61d18a;--warn:#efc45b;--bad:#ef6b72;--blue:#6ba7ff}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-button,input,textarea,select{font:inherit}.app{max-width:920px;margin:auto;padding:14px 12px 96px}.top{display:flex;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:23px;margin:3px 0 4px}.muted{color:var(--muted)}.small{font-size:12px}.badge{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;height:max-content}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:9px}
-button{min-height:44px;border:1px solid var(--line);border-radius:12px;background:#14171d;color:var(--text);font-weight:750;padding:8px 10px}button.primary,.nav button.active{background:#2a2116;border-color:#7b5b2e}
-.nav{position:sticky;bottom:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#090a0cef;backdrop-filter:blur(14px);padding:7px;border:1px solid var(--line);border-radius:16px;margin-top:16px;z-index:20}.nav button{font-size:11px;padding:5px;min-width:0}
-.screen{display:none}.screen.active{display:block}.section-title{font-weight:850;margin-bottom:10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.metric{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px}.metric strong{display:block;font-size:20px}.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-input,textarea,select{width:100%;background:#0f1116;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px}textarea{min-height:160px}
-.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.chip{border:1px solid var(--line);border-radius:999px;padding:4px 7px;font-size:11px;color:var(--muted)}
-.callout{background:#17140f;border-left:4px solid var(--accent);border-radius:12px;padding:11px 13px}.deckhead,.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.progress{height:8px;background:#222630;border:1px solid var(--line);border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--accent)}
-.role{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.role:last-child{border-bottom:0}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line);font-size:12px}th{color:var(--muted)}
-.hidden{display:none!important}.spinner{display:inline-block;width:14px;height:14px;border:2px solid #555;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-.lifegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.player{position:relative;overflow:hidden;background:linear-gradient(145deg,#232631,#12141a);border:1px solid var(--line);border-radius:17px;min-height:220px;padding:13px;display:flex;flex-direction:column;justify-content:space-between;background-size:cover;background-position:center}.player:before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.48),rgba(0,0,0,.18) 38%,rgba(0,0,0,.65));z-index:0}.player>*{position:relative;z-index:1}.life{font-size:58px;font-weight:900;text-align:center;line-height:1}.lifecontrols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lifecontrols button{font-size:28px;min-height:66px;background:rgba(0,0,0,.28)}.turnbar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}.pass{grid-column:span 2;background:#2a2116;border-color:#7b5b2e}
-@media(max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.lifegrid{gap:6px}.player{min-height:205px;padding:10px}.life{font-size:52px}}
+.editor-card{display:grid;grid-template-columns:68px 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px}
+.editor-card img{width:68px;height:94px;object-fit:cover;border-radius:8px;background:#0f1116}
+.editor-card .meta{min-width:0}
+.editor-card .name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.editor-card .sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.editor-actions{display:flex;flex-direction:column;gap:6px}
+.curve-row{display:grid;grid-template-columns:36px 1fr 36px;gap:8px;align-items:center;margin:6px 0}
+.curve-bar{height:9px;border-radius:999px;background:#252a33;overflow:hidden;border:1px solid var(--line)}
+.curve-bar span{display:block;height:100%;background:var(--accent)}
+.group-title{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:14px 0 7px}
+@media(max-width:600px){.editor-card{grid-template-columns:54px 1fr}.editor-card img{width:54px;height:75px}.editor-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr)}}
+</style>
+
+
+<style>
+.search-card{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px}
+.search-card img{width:78px;height:108px;object-fit:cover;border-radius:8px;background:#0f1116}
+.compare-box{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px}
+.diff-plus{color:var(--good)}.diff-minus{color:var(--bad)}
+@media(max-width:600px){.search-card{grid-template-columns:60px 1fr}.search-card img{width:60px;height:84px}.search-card button{grid-column:1/-1}}
+</style>
+
+<style>
+.favorite-star{font-size:18px;line-height:1}
+.selected-card{outline:2px solid var(--accent);outline-offset:1px}
+.editor-card .inline-mdie{font-size:11px;color:var(--muted);margin-top:5px}
+.maybe-card{opacity:.86;border-style:dashed}
+</style>
+
+<style>
+.stat-bar-row{display:grid;grid-template-columns:110px 1fr 42px;gap:8px;align-items:center;margin:7px 0}
+.stat-bar{height:10px;border-radius:999px;background:#252a33;overflow:hidden;border:1px solid var(--line)}
+.stat-bar span{display:block;height:100%;background:var(--accent)}
+.balance-ok{color:var(--good)}.balance-low{color:var(--warn)}.balance-high{color:var(--bad)}
+</style>
+
+<style>
+.archetype-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:11px;color:var(--muted)}
+.target-note{font-size:11px;color:var(--muted);margin-top:3px}
+</style>
+
+<style>
+.dimension-row{display:grid;grid-template-columns:140px 1fr 48px;gap:8px;align-items:center;margin:9px 0}
+.dimension-bar{height:12px;border-radius:999px;background:#252a33;border:1px solid var(--line);overflow:hidden}
+.dimension-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#f7cf8c)}
+.dimension-label{font-size:12px}
+.dimension-score{font-size:12px;font-weight:800;text-align:right}
+</style>
+
+<style>
+.po-row{display:grid;grid-template-columns:130px 1fr 50px 50px;gap:8px;align-items:center;margin:8px 0}
+.po-track{height:10px;background:#252a33;border:1px solid var(--line);border-radius:999px;position:relative;overflow:hidden}
+.po-pred,.po-obs{position:absolute;left:0;top:0;height:100%;border-radius:999px}
+.po-pred{background:var(--accent);opacity:.55}.po-obs{background:#f7cf8c;height:4px;top:3px}
+.trend-row{display:grid;grid-template-columns:60px 1fr 65px;gap:8px;align-items:center;margin:6px 0}
 </style>
 </head>
 <body>
-<div class="app">
-<div class="top"><div><div class="eyebrow">MTG Tool</div><h1>V2.3 Integrated Alpha</h1><div class="small muted">Real deck enrichment + real deck-derived analysis</div></div><div class="badge">GitHub-ready</div></div>
+  <main id="app">
+    <header class="topbar" id="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">M</div>
+        <div><div class="eyebrow">MTG TOOL</div><h1 id="screenTitle">Home</h1></div>
+      </div>
+      <button id="installBtn" class="icon-btn hidden" type="button">Install</button>
+    </header>
 
-<section id="decks" class="screen active">
-<div class="panel">
-<div class="row"><div><div class="section-title">Deck Library</div><div class="small muted">Each saved deck keeps versioned normalized lists and enrichment data.</div></div><button id="toggleImport" class="primary">+ Import</button></div>
-<div id="importPanel" class="hidden" style="margin-top:12px">
-<label class="small muted">Deck name</label><input id="deckName" value="Atraxa Counters">
-<label class="small muted" style="display:block;margin-top:8px">Commander</label><input id="commander" value="Atraxa, Praetors' Voice">
-<label class="small muted" style="display:block;margin-top:8px">Paste deck list</label><textarea id="deckText">1 Sol Ring
-1 Arcane Signet
-1 Hardened Scales
-1 Evolution Sage
-1 Heroic Intervention
-1 Swords to Plowshares
-1 Cultivate
-1 Kodama's Reach
-1 Beast Within
-1 Counterspell
-1 Rhystic Study
-1 Smothering Tithe
-1 Walking Ballista
-12 Forest
-8 Island
-8 Plains
-7 Swamp</textarea>
-<button id="saveDeck" class="primary" style="width:100%;margin-top:8px">Save deck</button>
-</div>
-<div id="deckList" style="margin-top:10px"></div>
-</div>
-<div class="callout"><b>V2.3 change:</b> Analyze now pulls real card metadata from Scryfall and stores the enriched result against that exact deck version.</div>
-</section>
+    <section class="screen active" data-screen="home">
+      <article class="hero-premium">
+        <div class="hero-kicker">COMMANDER INTELLIGENCE</div>
+        <h2>Know your deck.<br>Know your table.</h2>
+        <p>Track games, analyze real matchups and turn your playgroup history into deck improvements.</p>
+        <div class="hero-actions"><button class="primary" data-jump="play" type="button">Start game</button><button class="glass" data-jump="stats" type="button">View stats</button></div>
+      </article>
+      <div class="metric-strip">
+        <article><span>Tracked games</span><strong id="homeGames">0</strong><small>this device</small></article>
+        <article><span>Playgroup</span><strong>4</strong><small>active players</small></article>
+        <article><span>Decks</span><strong>4</strong><small>active</small></article>
+      </div>
+      <article class="section-card intelligence-card">
+        <div class="section-title-row"><div><span class="eyebrow">MDIE SNAPSHOT</span><h3>Atraxa Counters</h3></div><span class="status-pill">Prototype</span></div>
+        <div class="intel-grid"><div><span>Speed</span><strong>58</strong><i style="--v:58%"></i></div><div><span>Interaction</span><strong>73</strong><i style="--v:73%"></i></div><div><span>Resilience</span><strong>81</strong><i style="--v:81%"></i></div></div>
+        <div class="insight"><b>Primary bottleneck</b><span>Early creature pressure before your engine is established.</span></div>
+      </article>
+    </section>
 
-<section id="analyze" class="screen">
-<div class="panel"><div class="section-title">Real Deck Analysis</div><select id="analysisDeck"></select><button id="runAnalysis" class="primary" style="width:100%;margin-top:8px">Enrich & analyze selected version</button><div id="analysisStatus" class="small muted" style="margin-top:8px"></div></div>
-<div id="analysisResult" class="hidden">
-<div class="grid4">
-<div class="metric"><span class="small muted">Cards</span><strong id="aCards">0</strong></div>
-<div class="metric"><span class="small muted">Lands</span><strong id="aLands">0</strong></div>
-<div class="metric"><span class="small muted">Avg nonland MV</span><strong id="aMv">0</strong></div>
-<div class="metric"><span class="small muted">Commander MV</span><strong id="aCmdMv">0</strong></div>
-</div>
+    <section class="screen" data-screen="decks">
+      <div class="section-head"><div><div class="eyebrow">DECKS</div><h2>Your arsenal</h2></div><button id="toggleDeckImport" class="icon-btn" type="button">＋</button></div>
+      <div id="deckList" class="deck-gallery"></div>
 
-<div class="panel" style="margin-top:10px"><div class="section-title">Functional roles</div><div id="roles"></div></div>
+      <article id="deckImportCard" class="section-card hidden">
+        <div class="section-title-row"><div><span class="eyebrow">DECK LIBRARY</span><h3>Import Commander deck</h3></div><span class="status-pill">Versioned</span></div>
+        <label class="lab-label">Deck name<input id="labDeckName" value="Atraxa Counters"></label>
+        <label class="lab-label">Commander<input id="labCommander" value="Atraxa, Praetors' Voice"></label>
+        <label class="lab-label">Card list<textarea id="deckInput" rows="9" placeholder="1 Sol Ring\n1 Arcane Signet\n36 Forest\n..."></textarea></label>
+        <div class="actions"><button id="saveLabDeck" class="primary" type="button">Save deck</button><button id="clearDeck" class="glass" type="button">Clear</button></div>
+      </article>
 
-<div class="panel"><div class="section-title">Color source estimate</div><div id="colors" class="grid4"></div></div>
+      <article class="section-card">
+        <div class="section-title-row"><div><span class="eyebrow">MDIE</span><h3>Deck Intelligence Lab</h3></div><span class="status-pill">Master V5.8</span></div>
+        <div class="lab-tabs"><button class="active" data-lab-tab="analyze" type="button">Analyze</button><button data-lab-tab="simulate" type="button">Pod test</button><button data-lab-tab="improve" type="button">Improve</button><button data-lab-tab="versions" type="button">Versions</button><button data-lab-tab="diagnostics" type="button">Diagnostics</button></div>
 
-<div class="panel"><div class="section-title">Deck DNA signals</div><div id="dna"></div></div>
+        <div class="lab-panel active" data-lab-panel="analyze">
+          <label class="lab-label">Saved deck<select id="labAnalyzeDeck"></select></label>
+          <button id="analyzeDeck" class="primary full" type="button">Enrich & analyze deck</button>
+          <div id="labStatus" class="muted lab-status"></div>
+          <div id="deckAnalysis" class="analysis-box hidden" aria-live="polite"></div>
+        </div>
 
-<div class="panel"><div class="section-title">5,000-run opening/development simulation</div>
-<div class="grid3">
-<div class="metric"><span class="small muted">2–5 land opener</span><strong id="simKeep">0%</strong></div>
-<div class="metric"><span class="small muted">3 lands by T3</span><strong id="simT3">0%</strong></div>
-<div class="metric"><span class="small muted">4 lands by T4</span><strong id="simT4">0%</strong></div>
-</div>
-<div class="grid2" style="margin-top:9px">
-<div class="metric"><span class="small muted">Commander curve proxy</span><strong id="simCmd">0%</strong></div>
-<div class="metric"><span class="small muted">Confidence</span><strong id="simConf">0%</strong></div>
-</div>
-</div>
-<div id="bottlenecks" class="callout"></div>
-</div>
-</section>
+        <div class="lab-panel" data-lab-panel="simulate">
+          <label class="lab-label">Deck<select id="labSimDeck"></select></label>
+          <div class="setup-grid-2"><label><span>Pod size</span><select id="labPodSize"><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option></select></label><label><span>Environment</span><select id="labEnvironment"><option>Balanced</option><option>Fast Pressure</option><option>Artifact Heavy</option><option>Graveyard / Value</option></select></label><label><span>Sequences</span><select id="labPodRuns"><option value="2000">2,000</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></label><label><span>Engine</span><select disabled><option>MSE v14 · Exact Seat Binding</option></select></label></div>
+          <button id="runLabPod" class="primary full" type="button">Run pod stress test</button>
+          <div id="labPodResult" class="analysis-box hidden"></div>
+        </div>
 
-<section id="simulate" class="screen">
-<div class="panel"><div class="section-title">Pod Stress Test</div><select id="simDeck"></select>
-<div class="grid2" style="margin-top:8px"><label class="small muted">Pod size<select id="podSize"><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option></select></label><label class="small muted">Environment<select id="environment"><option>Balanced</option><option>Fast Pressure</option><option>Artifact Heavy</option><option>Graveyard / Value</option></select></label></div>
-<button id="runPod" class="primary" style="width:100%;margin-top:8px">Run pod stress model</button></div>
-<div id="podResult" class="hidden">
-<div class="grid3"><div class="metric"><span class="small muted">Mana stress</span><strong id="pMana">—</strong></div><div class="metric"><span class="small muted">Role stress</span><strong id="pRole">—</strong></div><div class="metric"><span class="small muted">Environment pressure</span><strong id="pEnv">—</strong></div></div>
-<div class="panel" style="margin-top:10px"><div class="section-title">Primary pod bottleneck</div><b id="pBottle"></b><div class="small muted" style="margin-top:5px">This combines real deck-derived mana/role data with the synthetic development pod environment.</div></div>
-</div>
-</section>
+        <div class="lab-panel" data-lab-panel="improve">
+          <label class="lab-label">Deck<select id="labImproveDeck"></select></label>
+          <div class="setup-grid-2"><label><span>Goal</span><select id="labGoal"><option>Balanced</option><option>Survive fast pods</option><option>Increase resilience</option><option>Improve mana consistency</option></select></label><label><span>Package</span><select id="labPackageSize"><option value="1">1 card</option><option value="2">2 cards</option><option value="3" selected>3 cards</option></select></label></div>
+          <button id="rankLabPackage" class="glass full" type="button">Rank cards & candidates</button>
+          <div id="labRankingResult" class="analysis-box hidden"></div>
+          <button id="buildLabPackage" class="primary full" type="button">Build & test top package</button>
+          <div id="labImproveResult" class="analysis-box hidden"></div>
+          <button id="acceptLabPackage" class="primary full hidden" type="button">Accept as new deck version</button>
+        </div>
 
-<section id="improve" class="screen">
-<div class="panel"><div class="section-title">Evidence-based improvement</div><select id="improveDeck"></select><button id="generateImprovement" class="primary" style="width:100%;margin-top:8px">Generate improvement package</button></div>
-<div id="improveResult" class="hidden">
-<div class="panel"><div class="deckhead"><div><b id="impTitle">Package A</b><div class="small muted" id="impReason"></div></div><strong class="good" id="impScore">+0</strong></div>
-<div id="impChanges" class="grid2" style="margin-top:10px"></div>
-<div class="chips" id="impChips"></div>
-<button id="acceptPackage" class="primary" style="width:100%;margin-top:10px">Accept virtual package as new snapshot</button></div>
-<div id="acceptMsg" class="callout hidden"></div>
-</div>
-</section>
+        <div class="lab-panel" data-lab-panel="versions">
+          <label class="lab-label">Deck<select id="labVersionDeck"></select></label>
+          <div id="labVersions" class="history-list"></div>
+        </div>
+        <div class="lab-panel" data-lab-panel="diagnostics">
+          <div class="section-title-row"><div><span class="eyebrow">INTEGRITY</span><h3>Telemetry & evidence</h3></div><span class="status-pill">v1</span></div>
+          <div id="labDiagnosticsSummary" class="lab-metrics"></div>
+          <div id="labDiagnosticsDetails" class="analysis-box" style="margin-top:10px"></div>
+          <label class="lab-label" style="margin-top:12px">Evidence deck<select id="labEvidenceDeck"></select></label>
+          <div id="labEvidenceList" class="history-list"></div>
+          <div id="labCalibrationPanel" class="analysis-box" style="margin-top:14px">
+            <div class="section-title-row"><div><span class="eyebrow">CALIBRATION</span><h3>Prediction error by deck version</h3></div><span class="status-pill">OBSERVED</span></div>
+            <label class="lab-label">Calibration deck<select id="labCalibrationDeck"></select></label>
+            <div id="labCalibrationSummary" class="lab-metrics"></div>
+            <div id="labCalibrationRows" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </article>
+    </section>
 
-<section id="play" class="screen">
-<div id="playSetup" class="panel">
-<div class="section-title">Quick Tracked Game</div><select id="playDeck"></select><label class="small muted" style="display:block;margin-top:8px">Players<select id="playerCount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label><button id="startGame" class="primary" style="width:100%;margin-top:8px">Start table</button></div>
-<div id="game" class="hidden"><div id="lifeGrid" class="lifegrid"></div><div class="turnbar"><button id="exitGame">Exit</button><button id="undoLife">Undo</button><button id="passTurn" class="pass">PASS TURN</button></div><div class="small muted" id="turnInfo" style="text-align:center;margin-top:8px"></div></div>
-</section>
+    <section class="screen" data-screen="groups">
+      <div class="section-head"><div><div class="eyebrow">PLAYGROUP</div><h2>Friday Night Commanders</h2></div><button class="icon-btn" type="button">＋</button></div>
+      <article class="group-banner"><div class="avatar-stack"><span>M</span><span>P</span><span>J</span><span>S</span></div><div><strong>4 players · 4 decks</strong><small>23 prototype games</small></div></article>
+      <div id="memberList" class="member-grid"></div>
+      <article class="section-card"><div class="section-title-row"><div><span class="eyebrow">PLAYGROUP DNA</span><h3>Table pressure</h3></div></div><div class="profile-row"><span>Early aggression</span><div><i style="--v:79%"></i></div><strong>High</strong></div><div class="profile-row"><span>Graveyard</span><div><i style="--v:58%"></i></div><strong>Med</strong></div><div class="profile-row"><span>Artifacts</span><div><i style="--v:53%"></i></div><strong>Med</strong></div></article>
+    </section>
 
-<div class="nav">
-<button class="navbtn active" data-screen="decks">Decks</button><button class="navbtn" data-screen="analyze">Analyze</button><button class="navbtn" data-screen="simulate">Simulate</button><button class="navbtn" data-screen="improve">Improve</button><button class="navbtn" data-screen="play">Play</button>
-</div>
-</div>
+    <section class="screen play-screen" data-screen="play">
+      <div id="playSetup">
+        <div class="section-head"><div><div class="eyebrow">PLAY</div><h2>Commander table</h2></div></div>
+        <div class="mode-switch"><button class="mode active" data-mode="tracked" type="button">Tracked</button><button class="mode" data-mode="quick" type="button">Quick game</button></div>
+        <article class="section-card setup-card">
+          <div class="setup-grid-2">
+            <label><span>Number of players</span><select id="playerCount"><option value="1">1 player / goldfish</option><option value="2">2 players</option><option value="3">3 players</option><option value="4" selected>4 players</option><option value="5">5 players</option><option value="6">6 players</option></select></label>
+            <label><span>Starting life</span><select id="startingLife"><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="40" selected>40</option><option value="60">60</option></select></label>
+          </div>
+          <div class="setup-actions"><button id="shuffleSeats" class="glass" type="button">Randomize seats</button><button id="randomFirst" class="glass" type="button">Random first player</button></div>
+          <div class="setup-toggles"><label><input id="autoKo" type="checkbox" checked> Auto-KO at 0 life / 10 poison / 21 commander</label><label><input id="timerEnabled" type="checkbox" checked> Turn timer</label></div>
+          <div id="seatSetup" class="seat-setup"></div><button id="startGame" class="primary full start-btn" type="button">Start tracked game</button>
+        </article>
+      </div>
 
-<script>
-const KEY='mtgtool.v23.decks';
-const CACHE='mtgtool.v23.cardcache';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}}
-function save(d){localStorage.setItem(KEY,JSON.stringify(d));refreshAll()}
-function loadCache(){try{return JSON.parse(localStorage.getItem(CACHE))||{}}catch{return{}}}
-function saveCache(c){localStorage.setItem(CACHE,JSON.stringify(c))}
-function parse(text){return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(l=>{const m=l.match(/^(\d+)\s+(.+)$/);return{qty:m?+m[1]:1,name:(m?m[2]:l).replace(/\s+\([A-Z0-9]+\)\s*\d*$/,'').trim()}})}
-function currentVersion(d){return d.versions[d.versions.length-1]}
-function getDeck(id){return load().find(d=>d.id===id)}
-function refreshAll(){
- const decks=load();
- $('deckList').innerHTML=decks.length?decks.map(d=>{const v=currentVersion(d);return `<div class="card"><div class="deckhead"><div><b>${esc(d.name)}</b><div class="small muted">${esc(d.commander||'Commander not set')}</div></div><span class="small">v${v.version}</span></div><div class="chips"><span class="chip">${v.cards.reduce((a,c)=>a+c.qty,0)} cards</span><span class="chip">${v.enriched?'enriched':'not enriched'}</span><span class="chip">${d.id.slice(-6)}</span></div></div>`}).join(''):'<div class="small muted">No decks saved yet.</div>';
- ['analysisDeck','simDeck','improveDeck','playDeck'].forEach(id=>{const el=$(id),old=el.value;el.innerHTML=decks.map(d=>`<option value="${d.id}">${esc(d.name)} — v${currentVersion(d).version}</option>`).join('');if(decks.some(d=>d.id===old))el.value=old});
-}
-document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.screen).classList.add('active')});
-$('toggleImport').onclick=()=>$('importPanel').classList.toggle('hidden');
-$('saveDeck').onclick=()=>{
- let decks=load(),cards=parse($('deckText').value),id='deck_'+Date.now().toString(36);
- decks.push({id,name:$('deckName').value.trim()||'Untitled',commander:$('commander').value.trim(),format:'Commander',createdAt:new Date().toISOString(),versions:[{version:1,createdAt:new Date().toISOString(),cards,source:'paste'}]});save(decks);$('importPanel').classList.add('hidden')
-};
+      <div id="playGame" class="hidden game-shell">
+        <div id="gameGrid" class="table-layout"></div>
+        <div class="center-hub">
+          <button id="turnHub" class="hub-main" type="button" aria-label="Pass turn to next player"><small id="roundLabel">ROUND 1</small><strong id="turnInitial">M</strong><span id="turnName">Maikel</span><em id="turnTimer">00:00</em><b>PASS TURN</b></button>
+        </div>
+        <div class="game-control-bar" aria-label="Game controls">
+          <button id="abortGame" class="control-danger" type="button"><span>×</span><small>Exit</small></button>
+          <button id="prevTurn" type="button"><span>‹</span><small>Previous</small></button>
+          <button id="undoBtn" type="button"><span>↶</span><small>Undo</small></button>
+          <button id="eventsBtn" type="button"><span>✦</span><small>Events</small></button>
+          <button id="utilitiesBtn" type="button"><span>⚄</span><small>Tools</small></button>
+          <button id="endGame" class="control-end" type="button"><span>■</span><small>End</small></button>
+        </div>
 
-async function scryfallLookup(names){
- const cache=loadCache(),result={},missing=[];
- for(const n of names){if(cache[n.toLowerCase()])result[n]=cache[n.toLowerCase()];else missing.push(n)}
- for(let i=0;i<missing.length;i+=70){
-  const batch=missing.slice(i,i+70);
-  const res=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifiers:batch.map(name=>({name}))})});
-  if(!res.ok)throw new Error('Scryfall lookup failed ('+res.status+')');
-  const data=await res.json();
-  (data.data||[]).forEach(card=>{cache[card.name.toLowerCase()]=card;result[card.name]=card});
- }
- saveCache(cache);return result;
-}
-function cardRole(card){
- const text=(card.oracle_text||'').toLowerCase(),type=(card.type_line||'').toLowerCase(),roles=[];
- if(type.includes('land'))roles.push('land');
- if(/add .*mana|add \{[wubrgc]\}|treasure token|search your library for .*land/.test(text))roles.push('ramp');
- if(/draw (a|two|three|x)|whenever .* draw|look at the top .* put .* hand/.test(text))roles.push('draw');
- if(/destroy target|exile target|counter target|return target .* hand|deals .* damage to target/.test(text))roles.push('interaction');
- if(/destroy all|exile all|each creature gets -|all creatures get -/.test(text))roles.push('wipe');
- if(/hexproof|indestructible|phase out|protection from/.test(text))roles.push('protection');
- if(/return .* from your graveyard|put .* from your graveyard|reanimate/.test(text))roles.push('recursion');
- if(/search your library for a card/.test(text))roles.push('tutor');
- if(/proliferate|\+1\/\+1 counter|counter on/.test(text))roles.push('counters');
- if(/create .* token|token creature/.test(text))roles.push('tokens');
- if(/sacrifice|dies|whenever .* dies/.test(text))roles.push('aristocrats');
- if(/artifact/.test(type+' '+text))roles.push('artifacts');
- if(/graveyard/.test(text))roles.push('graveyard');
- if(/instant|sorcery/.test(type) && /whenever you cast|magecraft/.test(text))roles.push('spellslinger');
- return [...new Set(roles)];
-}
-function producedColors(card){
- const s=new Set();(card.produced_mana||[]).forEach(c=>s.add(c));
- const text=card.oracle_text||'';['W','U','B','R','G'].forEach(c=>{if(text.includes('{'+c+'}'))s.add(c)});
- return [...s];
-}
-function expandCards(version,lookup){
- const arr=[];
- for(const item of version.cards){
-  const card=lookup[item.name]||lookup[Object.keys(lookup).find(k=>k.toLowerCase()===item.name.toLowerCase())];
-  for(let i=0;i<item.qty;i++)arr.push(card?{...card,_input:item.name}: {_input:item.name,name:item.name,type_line:'Unknown',mana_value:0,oracle_text:''});
- }
- return arr;
-}
-function randSample(a,n){const copy=a.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy.slice(0,n)}
-function simulate(cards,commander,iterations=5000){
- let keep=0,t3=0,t4=0,cmd=0;
- const lands=cards.filter(c=>(c.type_line||'').includes('Land')).length;
- const cmdMv=commander?.mana_value||4;
- for(let k=0;k<iterations;k++){
-  const deck=randSample(cards,Math.min(cards.length,12));
-  const opener=deck.slice(0,7),l7=opener.filter(c=>(c.type_line||'').includes('Land')).length;
-  if(l7>=2&&l7<=5)keep++;
-  const l9=deck.slice(0,9).filter(c=>(c.type_line||'').includes('Land')).length;
-  const l10=deck.slice(0,10).filter(c=>(c.type_line||'').includes('Land')).length;
-  if(l9>=3)t3++; if(l10>=4)t4++;
-  const ramp=deck.slice(0,10).filter(c=>cardRole(c).includes('ramp') && !(c.type_line||'').includes('Land')).length;
-  if(l10 + Math.min(ramp,2) >= Math.ceil(cmdMv))cmd++;
- }
- return {keep:keep/iterations,t3:t3/iterations,t4:t4/iterations,cmd:cmd/iterations,lands,cmdMv};
-}
-function saveAnalysis(deckId,analysis){
- const decks=load(),idx=decks.findIndex(d=>d.id===deckId);if(idx<0)return;
- const v=currentVersion(decks[idx]);v.analysis=analysis;v.enriched=true;save(decks)
-}
-$('runAnalysis').onclick=async()=>{
- const d=getDeck($('analysisDeck').value);if(!d)return alert('Import a deck first.');
- const v=currentVersion(d),status=$('analysisStatus');status.innerHTML='<span class="spinner"></span> Enriching cards from Scryfall…';
- try{
-  const names=[...new Set(v.cards.map(c=>c.name).concat(d.commander?[d.commander]:[]))];
-  const lookup=await scryfallLookup(names);
-  const expanded=expandCards(v,lookup),commander=lookup[d.commander]||lookup[Object.keys(lookup).find(k=>k.toLowerCase()===d.commander.toLowerCase())];
-  const landCards=expanded.filter(c=>(c.type_line||'').includes('Land')),nonlands=expanded.filter(c=>!(c.type_line||'').includes('Land'));
-  const avgMv=nonlands.length?nonlands.reduce((a,c)=>a+(Number(c.mana_value)||0),0)/nonlands.length:0;
-  const roleCounts={};expanded.forEach(c=>cardRole(c).forEach(r=>roleCounts[r]=(roleCounts[r]||0)+1));
-  const colors={W:0,U:0,B:0,R:0,G:0};expanded.forEach(c=>producedColors(c).forEach(x=>{if(colors[x]!==undefined)colors[x]++}));
-  const dna=['counters','tokens','aristocrats','artifacts','graveyard','spellslinger'].map(x=>({name:x,count:roleCounts[x]||0})).sort((a,b)=>b.count-a.count);
-  const sim=simulate(expanded,commander,5000);
-  const confidence=Math.round(Math.min(92,55 + (expanded.filter(c=>c.type_line!=='Unknown').length/Math.max(1,expanded.length))*30 + (expanded.length>=90?7:0)));
-  const analysis={timestamp:new Date().toISOString(),total:expanded.length,lands:landCards.length,avgMv,cmdMv:commander?.mana_value||0,roles:roleCounts,colors,dna,sim:{...sim,confidence}};
-  saveAnalysis(d.id,analysis);
-  $('aCards').textContent=analysis.total;$('aLands').textContent=analysis.lands;$('aMv').textContent=analysis.avgMv.toFixed(2);$('aCmdMv').textContent=analysis.cmdMv;
-  const roleNames=['ramp','draw','interaction','wipe','protection','recursion','tutor'];
-  $('roles').innerHTML=roleNames.map(r=>`<div class="role"><span>${r[0].toUpperCase()+r.slice(1)}</span><b>${analysis.roles[r]||0}</b></div>`).join('');
-  $('colors').innerHTML=Object.entries(analysis.colors).map(([c,n])=>`<div class="metric"><span class="small muted">${c} sources</span><strong>${n}</strong></div>`).join('');
-  $('dna').innerHTML=analysis.dna.slice(0,4).map(x=>`<div class="role"><span>${x.name}</span><b>${x.count}</b></div>`).join('');
-  $('simKeep').textContent=Math.round(sim.keep*100)+'%';$('simT3').textContent=Math.round(sim.t3*100)+'%';$('simT4').textContent=Math.round(sim.t4*100)+'%';$('simCmd').textContent=Math.round(sim.cmd*100)+'%';$('simConf').textContent=confidence+'%';
-  let notes=[];if(sim.t3<.75)notes.push('Early land development is inconsistent.');if(sim.cmd<.65)notes.push('Commander-on-curve proxy is relatively low.');if((roleCounts.interaction||0)<7)notes.push('Detected interaction density is low.');if((roleCounts.protection||0)<3)notes.push('Protection/recovery redundancy appears low.');if(avgMv>3.6)notes.push('Average nonland mana value is relatively high.');
-  $('bottlenecks').innerHTML='<b>Measured bottlenecks</b><br>'+(notes.length?notes.map(x=>'• '+x).join('<br>'):'No major bottleneck triggered by the current alpha thresholds.');
-  $('analysisResult').classList.remove('hidden');status.textContent='Analysis saved to this deck version.';
- }catch(e){status.textContent='Analysis failed: '+e.message}
-};
-$('runPod').onclick=()=>{
- const d=getDeck($('simDeck').value);if(!d)return alert('Import a deck first.');const a=currentVersion(d).analysis;if(!a)return alert('Analyze this deck first.');
- const env=$('environment').value,pod=+$('podSize').value;
- const envStress={Balanced:0,'Fast Pressure':18,'Artifact Heavy':10,'Graveyard / Value':4}[env]||0;
- const manaStress=Math.max(0,Math.round((1-a.sim.t3)*100 + Math.max(0,pod-4)*3));
- const roleBase=Math.max(0,20-(a.roles.interaction||0)*2) + Math.max(0,9-(a.roles.protection||0)*3);
- const roleStress=Math.max(0,Math.round(roleBase+envStress*.4));
- const total=Math.min(99,Math.round((manaStress+roleStress+envStress)/3));
- $('pMana').textContent=manaStress+'%';$('pRole').textContent=roleStress+'%';$('pEnv').textContent=total+'%';
- let bottle='Balanced development';if(manaStress>=roleStress&&manaStress>=envStress)bottle='Mana development / curve';else if(roleStress>=envStress)bottle='Interaction / protection coverage';else bottle=env+' environment pressure';
- $('pBottle').textContent=bottle;$('podResult').classList.remove('hidden');
-};
-$('generateImprovement').onclick=()=>{
- const d=getDeck($('improveDeck').value);if(!d)return alert('Import a deck first.');const a=currentVersion(d).analysis;if(!a)return alert('Analyze this deck first.');
- let weak='protection',score=7,reason='Protection/recovery is the weakest detected subsystem.';
- if(a.sim.t3<.72){weak='mana consistency';score=9;reason='Early land development is the strongest measured bottleneck.'}
- else if((a.roles.interaction||0)<7){weak='interaction';score=8;reason='Interaction density is below the alpha target.'}
- $('impTitle').textContent='Package A — '+weak;
- $('impReason').textContent=reason;$('impScore').textContent='+'+score.toFixed(1);
- $('impChanges').innerHTML=`<div class="metric"><span class="small bad">OUT</span><strong>Lowest-connectivity slot</strong><span class="small muted">identified in next card-criticality pass</span></div><div class="metric"><span class="small good">IN</span><strong>${weak}</strong><span class="small muted">role-focused candidate</span></div>`;
- $('impChips').innerHTML=`<span class="chip">Uses saved deck analysis</span><span class="chip">Confidence ${a.sim.confidence}%</span><span class="chip">Virtual change only</span>`;
- $('improveResult').classList.remove('hidden');
-};
-$('acceptPackage').onclick=()=>{
- let decks=load(),idx=decks.findIndex(d=>d.id===$('improveDeck').value);if(idx<0)return;let prev=currentVersion(decks[idx]);
- decks[idx].versions.push({version:prev.version+1,createdAt:new Date().toISOString(),cards:JSON.parse(JSON.stringify(prev.cards)),source:'mdie-v23-virtual',note:'Accepted alpha recommendation package; actual card replacement engine not yet applied'});
- save(decks);$('acceptMsg').textContent='New version snapshot created. The next milestone will apply real card substitutions instead of snapshotting an unchanged list.';$('acceptMsg').classList.remove('hidden')
-};
-let gamePlayers=[],turn=0,undo=[];
-function renderGame(){
- $('lifeGrid').innerHTML=gamePlayers.map((p,i)=>`<div class="player" ${p.art?`style="background-image:url('${p.art}')"`:''}><div><b>${esc(p.name)}</b><div class="small">${esc(p.commander)}</div></div><div><div class="life">${p.life}</div><div class="lifecontrols"><button data-i="${i}" data-d="-1">−</button><button data-i="${i}" data-d="1">+</button></div></div></div>`).join('');
- document.querySelectorAll('.lifecontrols button').forEach(b=>b.onclick=()=>{undo.push(JSON.stringify(gamePlayers));gamePlayers[+b.dataset.i].life+=+b.dataset.d;renderGame()});$('turnInfo').textContent=`Turn: ${gamePlayers[turn]?.name||''}`;
-}
-$('startGame').onclick=async()=>{
- const d=getDeck($('playDeck').value);if(!d)return alert('Import a deck first.');const n=+$('playerCount').value;let art='';
- try{const lookup=await scryfallLookup([d.commander]);const c=lookup[d.commander]||lookup[Object.keys(lookup).find(k=>k.toLowerCase()===d.commander.toLowerCase())];art=c?.image_uris?.art_crop||c?.card_faces?.[0]?.image_uris?.art_crop||''}catch{}
- gamePlayers=Array.from({length:n},(_,i)=>({name:i===0?'You':'Player '+(i+1),commander:i===0?d.commander:'Test Commander '+(i+1),life:40,art:i===0?art:''}));turn=0;undo=[];$('playSetup').classList.add('hidden');$('game').classList.remove('hidden');renderGame()
-};
-$('passTurn').onclick=()=>{if(!gamePlayers.length)return;turn=(turn+1)%gamePlayers.length;renderGame()};$('undoLife').onclick=()=>{if(!undo.length)return;gamePlayers=JSON.parse(undo.pop());renderGame()};$('exitGame').onclick=()=>{$('game').classList.add('hidden');$('playSetup').classList.remove('hidden')};
-refreshAll();if('serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
-</script>
+        <div id="playerSheet" class="sheet hidden" role="dialog" aria-modal="true"><div class="sheet-card"><div class="sheet-handle"></div><div class="sheet-head"><div><span class="eyebrow">PLAYER CONTROLS</span><h3 id="sheetPlayerName">Player</h3></div><button id="closeSheet" class="icon-btn" type="button">×</button></div><div id="sheetContent"></div></div></div>
+        <div id="eventSheet" class="sheet hidden" role="dialog" aria-modal="true"><div class="sheet-card"><div class="sheet-handle"></div><div class="sheet-head"><div><span class="eyebrow">GAME LOG</span><h3>Quick event</h3></div><button id="closeEvents" class="icon-btn" type="button">×</button></div><div class="event-grid"><button data-event="Commander cast">Commander cast</button><button data-event="Board wipe">Board wipe</button><button data-event="Interaction">Interaction</button><button data-event="Recovery">Recovery</button><button data-event="Engine online">Engine online</button><button data-event="Combo attempt">Combo attempt</button><button data-event="Mana problem">Mana problem</button><button data-event="Player eliminated">Elimination</button></div><div id="eventLog" class="timeline"></div></div></div>
+
+        <div id="utilitiesSheet" class="sheet hidden" role="dialog" aria-modal="true"><div class="sheet-card"><div class="sheet-handle"></div><div class="sheet-head"><div><span class="eyebrow">TABLE UTILITIES</span><h3>Dice, states & counters</h3></div><button id="closeUtilities" class="icon-btn" type="button">×</button></div>
+          <div class="utility-grid"><button data-roll="6" type="button">d6</button><button data-roll="20" type="button">d20</button><button id="coinFlip" type="button">Coin</button><button id="pickPlayer" type="button">Random player</button><button id="pickOpponent" type="button">Random opponent</button><button id="toggleMonarch" type="button">Monarch</button><button id="toggleInitiative" type="button">Initiative</button><button id="toggleDayNight" type="button">Day / Night</button></div>
+          <div id="utilityResult" class="utility-result">Tap a utility to use it.</div>
+          <div class="global-state"><span>Monarch <strong id="monarchState">—</strong></span><span>Initiative <strong id="initiativeState">—</strong></span><span>Day/Night <strong id="dayNightState">Day</strong></span></div>
+        </div></div>
+        <div id="finishPanel" class="sheet hidden" role="dialog" aria-modal="true"><div class="sheet-card"><div class="sheet-handle"></div><div class="sheet-head"><div><span class="eyebrow">GAME COMPLETE</span><h3>Record result</h3></div><button id="closeFinish" class="icon-btn" type="button">×</button></div><label>Winner<select id="winnerSelect"></select></label><label>Finish type<select id="finishType"><option>Combat</option><option>Commander damage</option><option>Combo</option><option>Poison</option><option>Alternate win</option><option>Concession</option><option>Other</option></select></label><button id="saveGame" class="primary full" type="button">Save result</button><div id="saveMsg" class="save-msg"></div></div></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="stats">
+      <div class="section-head"><div><div class="eyebrow">STATISTICS</div><h2>Performance</h2></div><button id="resetData" class="icon-btn" type="button">↺</button></div>
+      <div class="stat-tabs"><button class="active" data-stat-tab="player" type="button">Player</button><button data-stat-tab="deck" type="button">Deck</button><button data-stat-tab="group" type="button">Group</button></div>
+      <div class="metric-strip"><article><span>Games</span><strong id="statGames">0</strong><small>tracked</small></article><article><span>Avg rounds</span><strong id="statRounds">—</strong><small>per game</small></article><article><span>Win method</span><strong id="topFinish">—</strong><small>most common</small></article></div>
+      <article class="section-card"><div class="section-title-row"><div><span class="eyebrow">PLAYERS</span><h3>Win rate</h3></div></div><div id="playerStats" class="chart-list"></div></article>
+      <article class="section-card"><div class="section-title-row"><div><span class="eyebrow">DECKS</span><h3>Performance</h3></div></div><div id="deckStats" class="chart-list"></div></article>
+      <article class="section-card"><div class="section-title-row"><div><span class="eyebrow">HISTORY</span><h3>Recent games</h3></div></div><div id="recentGames" class="history-list"></div></article>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" id="bottomNav" aria-label="Primary">
+    <button class="nav active" data-target="home" type="button"><span>⌂</span><small>Home</small></button>
+    <button class="nav" data-target="decks" type="button"><span>▤</span><small>Decks</small></button>
+    <button class="nav" data-target="groups" type="button"><span>◉</span><small>Group</small></button>
+    <button class="nav play-nav" data-target="play" type="button"><span>▶</span><small>Play</small></button>
+    <button class="nav" data-target="stats" type="button"><span>▥</span><small>Stats</small></button>
+  </nav>
+  <script src="app.js"></script>
 </body>
 </html>

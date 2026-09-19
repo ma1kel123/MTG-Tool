@@ -1,30 +1,52 @@
-# MTG Tool V2.3 Integrated Alpha
+# MTG Tool Master V5.8 Alpha — Exact Play Seat Binding / MSE v14
 
-This is the first integrated build where Analyze derives major values from the imported deck itself.
+V5.8 fixes the most important remaining lineage weakness found during automatic calibration work.
 
-Implemented:
-- persistent versioned deck library
-- Scryfall `/cards/collection` batch enrichment
-- card metadata caching in localStorage
-- real land count
-- real average nonland mana value
-- commander mana value
-- functional role classification from oracle text/type line
-- approximate mana color-source counts
-- Deck DNA signals from detected mechanics
-- 5,000-run local opening/development Monte Carlo
-- measured bottleneck thresholds
-- pod stress model combining real deck-derived data with synthetic environments
-- improvement package selection based on saved analysis
-- commander artwork lookup in Play
-- GitHub Pages + PWA static hosting support
+## Explicit saved-deck binding per Play seat
 
-Important alpha limitations:
-- role classification is heuristic, not a full Magic rules engine
-- commander-on-curve is a proxy and does not yet solve exact colored mana sequencing
-- pod environments are still synthetic test models
-- accepted recommendations create version snapshots but do not yet perform real card substitutions
-- card names must be recognizable by Scryfall for enrichment
+Each player seat in the tracked-game setup can now be bound directly to a saved deck.
 
-GitHub update:
-Upload/replace these files in the repository root and commit. The same GitHub Pages URL will update automatically.
+The selector displays:
+- deck name
+- exact current deck version
+- commander
+
+The binding is stored by player/member and reused in later games.
+
+## Game-start snapshot
+
+When the game starts, MTG Tool snapshots:
+- Deck ID
+- exact Deck Version
+- deck name
+- commander
+
+Historical games therefore remain linked to the version actually used at game start, even if the deck is edited later.
+
+## Legacy fallback
+
+Older users/records without explicit bindings can still resolve by an unambiguous exact deck-name match.
+
+However:
+- legacy-resolved references are marked
+- they no longer count as high-integrity exact-version calibration data
+- V5.6/V5.7 calibration uses explicit exact-version references only
+
+## Integrity semantics
+
+High telemetry integrity now requires every player seat to be explicitly bound to a saved Deck ID + Version.
+
+Diagnostics exposes saved-seat binding coverage.
+
+## Why development pauses here
+
+The next meaningful calibration improvement requires real tracked games generated through this exact seat-binding path.
+
+Continuing to change calibration formulas before collecting that data would risk optimizing against synthetic assumptions rather than observed behavior.
+
+Recommended next action:
+1. deploy/test V5.8 on phone
+2. bind saved decks to the actual players in a tracked game
+3. record several games
+4. return to Diagnostics -> Calibration
+5. use the resulting exact-version prediction error to decide the next model change
